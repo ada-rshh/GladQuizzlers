@@ -1,0 +1,33 @@
+.profilepic {
+  color: transparent;
+  transition: all .3s ease;
+  position: relative;
+  transition: all .3s ease;
+  margin: auto;
+}
+
+ span {
+    display: inline-flex;
+    padding: .2em;
+    height: 2em;
+  }
+
+.input {
+    display: none;
+}
+img {
+    position: absolute;
+    object-fit: cover;
+    width: 175px;
+    height: 175px;
+    box-shadow: 0 0 10px 0 white;
+    border-radius: 50%;
+    z-index: 0;
+    left: 1200px;
+  }
+
+.-label {
+    cursor: pointer;
+    height: 175px;
+    width: 175px;
+  }

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Forum</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="{{ url_for('static', filename='admin_forum.css') }}" rel="stylesheet">
+<!--    <link rel="stylesheet" href=" {{url_for('static', filename = 'dropdown.css' )}}">-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+
+<!--
+- #HEADER
+-->
+
+<header class="header" data-header>
+    <div class="container">
+
+      <h1>
+        <a href="/admin_home" class="logo">Wildvine Admin</a>
+      </h1>
+
+      <select name="language" class="lang-switch">
+
+        <option value="english">English</option>
+        <option value="french">French</option>
+        <option value="spanish">Spanish</option>
+
+      </select>
+
+      <button class="nav-open-btn" aria-label="Open Menu" data-nav-open-btn>
+        <ion-icon name="menu-outline"></ion-icon>
+      </button>
+
+      <nav class="navbar" data-navbar>
+
+        <button class="nav-close-btn" aria-label="Close Menu" data-nav-close-btn>
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+
+        <a href="/admin_home" class="logo">Wildvine</a>
+
+        <ul class="navbar-list">
+
+          <li>
+            <a href="/admin_home" class="navbar-link" data-nav-link>
+              <span>Home</span>
+
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="/feedback_log" class="navbar-link" data-nav-link>
+              <span>Feedback </span>
+
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="/report_log" class="navbar-link" data-nav-link>
+              <span>Feed Report </span>
+
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="/admin_forum" class="navbar-link" data-nav-link>
+              <span>Feed</span>
+
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="/report_c_log" class="navbar-link" data-nav-link>
+              <span>Comment Report</span>
+
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </a>
+          </li>
+
+          <li>
+            <a href="/compose_newsletter" class="navbar-link" data-nav-link>
+              <span>Newsletter</span>
+
+              <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+            </a>
+          </li>
+
+        </ul>
+
+  </nav>
+
+<!--upload button-->
+</div>
+</header>
+
+
+
+<div class="search-bar">
+    <form id="search-form" action="{{ url_for('search_by_author') }}" method="GET">
+        <input type="text" id="search-author-id" name="author_id" placeholder="Search for posts...">
+        <button type="submit">Search</button>
+    </form>
+</div>
+
+
+
+<center>
+    <div class="post-cards-container" id="posts-container">
+        {% for post in posts %}
+            <div class="post-card" id="post-{{ post._id }}">
+                <img src="{{ url_for('get_image', file_id=post.image_file_id|format_object_id) }}" alt="Post Image" width="300">
+                <div class="post-actions">
+                    <div class="dropdown">
+                        <span class="post-options" onclick="toggleDropdown('{{ post._id }}')">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </span>
+                        <div class="dropdown-content" id="dropdown-{{ post._id }}">
+                            <a class="dropdown-item" href="#" onclick="admin_deletePost('{{ post._id }}', '{{ csrf_token() }}')">Delete Post</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="post-content">
+                    <h3 class="author-id">{{ post.author_id }}:</h3>
+                    <p class="caption">{{ post.caption }}</p>
+                </div>
+                <div id="edit-form-{{ post._id }}" style="display: none;">
+                    <form method="POST" action="{{ url_for('edit_post', post_id=post._id) }}" class="edit-form">
+
+                        {{ edit_form.hidden_tag() }}
+                        {{ edit_form.caption.label }}
+                        {{ edit_form.caption(placeholder=post.caption, render_kw={'pattern': '^[^<>/]*$', 'title': 'Avoid using <, >, or / characters.'}) }}
+                        <input type="submit" value="Save">
+                    </form>
+                </div>
+                <div class="comments-section">
+                    <ul class="comments-list" id="comments-list-{{ post._id }}" style="display: none;">
+                        {% for comment in post.comments %}
+                            <li>{{ comment.username }}: <span class="comment-text">{{ comment.comment_text }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    <span class="comment-icon" data-post-id="{{ post._id }}" onclick="toggleComments('{{ post._id }}')">
+                        <i class="fas fa-chevron-down"></i> Show Comments
+                    </span>
+                    <form class="comment-form" method="POST" data-post-id="{{ post._id }}" onsubmit="addComment(event, '{{ post._id }}')">
+
+                        {{ comment_form.hidden_tag() }}
+                        {{ comment_form.comment_text.label }}
+                        {{ comment_form.comment_text(render_kw={'pattern': '^[^<>/]*$', 'title': 'Avoid using <, >, or / characters.'}) }}
+                        <input type="submit" value="Add Comment">
+                    </form>
+                </div>
+                <hr>
+            </div>
+        {% endfor %}
+    </div>
+</center>
+  <!--
+    - custom js link
+  -->
+  <script src="./static/script.js"></script>
+  <script src="./static/admin_forum.js"></script>
+
+  <!--
+    - ionicon link
+  -->
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forgot Password</title>
+    <link href=" {{url_for('static', filename = 'forgot.css' )}}" rel="stylesheet">
+    <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@300;400;500;700&family=Oswald:wght@600&display=swap"
+    rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+    <div class="form-center">
+        <form action="/form_delete" method="post">
+            <h1 class="words">WILD<span>VINE</span></h1>
+            <input type="text" name="username" placeholder="enter username" class="input">
+          <input type="password" name="password" placeholder="enter password to confirm goodbye :-(" class="input">
+            <h1 class="validation">{{info}}</h1>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="submit" class="submit" style="width: 6%;">
+        </form>
+    </div>
+
+</body>
+</html>

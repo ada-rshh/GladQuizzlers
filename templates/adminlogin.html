@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>admin login</title>
+    <link href=" {{url_for('static', filename = 'forgot.css' )}}" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+</head>
+<body>
+    <div>
+        <form action="/admin_login" method="post">
+            <h1 class="words">WILDVINE <br> Admin Login</h1>
+            <input type="text" name="username" class="input" placeholder="username" required><br>
+            <input type="password" name="password" class="input" placeholder="password" required><br>
+            <h1 class="validation">{{ error }}</h1>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<!--            <a href="{{ url_for('admin_signup') }}" class="signup-link">Admin Sign Up</a>-->
+            <input type="submit" value="Login" class="submit" style="width: 6%;">
+        </form>
+    </div>
+</body>
+</html>

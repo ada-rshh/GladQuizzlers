@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>signup</title>
+    <link href=" {{url_for('static', filename = 'forgot.css' )}}" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+</head>
+<body>
+    <div>
+        <form action="/admin_signup" method="post">
+            <h3 class="words">WILD<span>VINE</span><br>Admin Sign Up</h3>
+
+            <input type="text" name="username" class="input" placeholder="username" required><br>
+            <input type="password" name="password" class="input" placeholder="password" required><br>
+            <input type="password" name="confirm" class="input" placeholder="confirm password" required><br>
+
+
+            <h1 class="validation">{{ error }}</h1>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="submit" value="Sign Up" class="submit" style="width: 6%;">
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+.form-center {
+    margin: 100px;
+}
+
+.news {
+
+    text-align: center;
+}
+
+.input {
+    margin: auto;
+    display: block;
+    border: 2px solid #829985;
+    border-radius: 5px;
+    background-color: #d7e7da;
+    padding: 18px 20px;
+    width: 25%;
+    margin-bottom: 10px;
+}
+
+.submit {
+    margin: auto;
+    display: block;
+    background-color: #5c705f;
+    color: white;
+    border-radius: 14px;
+    border: 2px solid #5c705f;
+    padding: 5px 15px;
+    width: 24%;
+    text-decoration: none;
+}
+
+.submit:hover {
+     color : white;
+}
+
+.words {
+    padding: 5px;
+    text-align: center;
+    color: black;
+    font-size: 80px;
+    padding-bottom: 0px;
+    font-family: Oswald;
+}
+
+.validation {
+    padding: 3px;
+    color: red;
+    text-align: center;
+    font-size: 12px;
+}
+
+.signup-link {
+    margin: auto;
+    margin-bottom: 20px;
+    display: block;
+    background-color: #5c705f;
+    color: white;
+    border-radius: 14px;
+    border: 2px solid #5c705f;
+    padding: 5px 10px;
+    width: 6%;
+    text-decoration: none;
+}
+
+.signup-link:hover {
+    color: white;
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>signup</title>
+    <link href=" {{url_for('static', filename = 'forgot.css' )}}" rel="stylesheet">
+    <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@300;400;500;700&family=Oswald:wght@600&display=swap"
+    rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div>
+        <form action="/form_signup" method="post">
+            <h1 class="words">WILD<span>VINE</span></h1>
+            <input type="email" name="email" class="input" placeholder="email" required><br>
+            <input type="text" name="username" class="input" placeholder="username" required><br>
+            <input type="password" name="password" class="input" placeholder="password" required><br>
+            <input type="password" name="confirm" class="input" placeholder="confirm password" required><br>
+            <div class="news">
+                <label for="subscribe">Subscribe to Newsletter:</label>
+                <input type="checkbox" name="subscribe" id="subscribe" checked>
+            </div>
+            <h1 class="validation">{{ error }}</h1>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="submit" value="Sign Up" class="submit" style="width: 6%;">
+        </form>
+    </div>
+</body>
+</html>
+
+

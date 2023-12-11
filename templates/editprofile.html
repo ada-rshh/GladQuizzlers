@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="shortcut icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href=" {{url_for('static', filename = 'dropdown.css' )}}">
+    <link href=" {{url_for('static', filename = 'editprofile.css' )}}" rel="stylesheet">
+    <link href=" {{url_for('static', filename = 'profilepic.css' )}}" rel="stylesheet">
+    <script src="{{url_for('static', filename='profilepic.js')}}"></script>
+    <link href=" {{url_for('static', filename = 'login.css' )}}" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  	<link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@300;400;500;700&family=Oswald:wght@600&display=swap"
+    rel="stylesheet">
+</head>
+<body>
+
+<!--
+- #HEADER
+-->
+
+<header class="header" data-header>
+<div class="container">
+
+  <h1>
+    <a href="/home" class="logo">Wildvine</a>
+  </h1>
+
+  <select name="language" class="lang-switch">
+
+    <option value="english">English</option>
+    <option value="french">French</option>
+    <option value="spanish">Spanish</option>
+
+  </select>
+
+  <button class="nav-open-btn" aria-label="Open Menu" data-nav-open-btn>
+    <ion-icon name="menu-outline"></ion-icon>
+  </button>
+
+  <nav class="navbar" data-navbar>
+
+    <button class="nav-close-btn" aria-label="Close Menu" data-nav-close-btn>
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+    <a href="/home" class="logo">Wildvine</a>
+
+    <ul class="navbar-list">
+
+      <li>
+        <a href="/home" class="navbar-link" data-nav-link>
+          <span>Home</span>
+
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </a>
+      </li>
+
+      <li>
+        <a href="/forum" class="navbar-link" data-nav-link>
+          <span>Feed</span>
+
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </a>
+      </li>
+
+      <li>
+        <a href="/comment" class="navbar-link" data-nav-link>
+          <span>Comment</span>
+
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </a>
+      </li>
+
+      <li>
+        <a href="/feedback" class="navbar-link" data-nav-link>
+          <span>Feedback</span>
+
+          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+        </a>
+      </li>
+
+    </ul>
+
+  </nav>
+  <form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  </form>
+
+      <div class="header-action">
+        <a href="/add_post" class="button search-btn" aria-label="Add Post">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i>
+        </a>
+        </div>
+
+<!--      <div class="h-icons">-->
+<!--			<a href="#"><i class="bx bx-user-circle" class="account" style="font-size: 1.73em;" onclick="toggleMenu()"></i></a>-->
+<!--			<div class="sub-menu-wrap" id="subMenu">-->
+<!--				<div class="sub-menu">-->
+<!--					<div class="user-info">-->
+<!--                        <h2>{{info}}</h2>  &lt;!&ndash; Updated to use {{info}} instead of {{username}} &ndash;&gt;-->
+<!--                    </div>-->
+<!--					<hr>-->
+<!--					<a href="/editprofile" class="sub-menu-link">-->
+<!--						<i class='bx bxs-edit-alt'></i>-->
+<!--						<p>edit profile</p>-->
+<!--						<span>></span>-->
+<!--					</a>-->
+<!--					<a href="/logout" class="sub-menu-link">-->
+<!--						<i class='bx bx-log-out' ></i>-->
+<!--						<p>logout</p>-->
+<!--						<span>></span>-->
+<!--					</a>-->
+<!--					<a href="/deletepage" class="sub-menu-link">-->
+<!--						<i class='bx bx-trash'></i>-->
+<!--						<p>delete account</p>-->
+<!--						<span>></span>-->
+<!--					</a>-->
+<!--				</div>-->
+<!--			</div>-->
+<!--		</div>-->
+<!--        <script>-->
+<!--		let subMenu = document.getElementById("subMenu");-->
+
+<!--		function toggleMenu(){-->
+<!--			subMenu.classList.toggle("open-menu");-->
+<!--		}-->
+<!--	</script>-->
+
+    </div>
+  </header>
+
+
+    <div id="mySidenav" class="sidenav">
+
+          <a href="/editprofile">edit profile</a>
+          <a href="/logout">logout</a>
+          <a href="/deleteacc">delete account</a>
+    </div>
+    <div id="main">
+            <form action="/edit_profile" method="post" enctype="multipart/form-data">
+                <br><br><br>
+            <div class="fieldiv">
+                <input type="text" name="old_username" class="epinput" placeholder="old username" ><br>
+                <input type="text" name="new_username" class="epinput" placeholder="new username" ><br>
+<!--                <textarea name="bio" class="epinput" placeholder="Bio"></textarea><br>-->
+<!--                <input type="password" name="old_password" class="epinput" placeholder="existing password">-->
+                <input type="password" name="new_password" class="epinput" placeholder="password"><br>
+                <input type="password" name="confirm" class="epinput" placeholder="confirm password"><br>
+                <h1 class="validation">{{error}}</h1>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="submit" value="Save" class="epsubmit">
+            </div>
+
+        </form>
+    </div>
+
+
+</body>
+</html>
