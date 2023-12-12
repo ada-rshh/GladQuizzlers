@@ -47,48 +47,40 @@
                     <ul class="flex">
                         <li><a href="/home" class="active">Home</a></li>
                         <li><a href="/forum">Quizz</a></li>
-                        <li><a href="/add_quiz">UPQuiz<i class="fa-solid fa-angle-down"></i></a></li>
+                        <li><a href="">Games<i class="fa-solid fa-angle-down"></i></a></li>
                         <li><a href="/feedback">Feedback</a></li>
                         <li><a href="/contact">Contact</a></li>
                     </ul>
                 </div>
             </div>
         </nav>
-        <div class="headercont container flex">
-            <div class="labels flex">
-                <div class="flex">
-                    <i class="fa-solid fa-tv"></i>
-                    <h3 class="flex">
-                        <a href="/">PLAYSTATION 4</a>
-                        <span>,</span>
-                        <a href="/">STEAM</a>
-                    </h3>
-                </div>
-                <div class="flex">
-                    <i class="fa-solid fa-tags"></i>
-                    <h3 class="flex">
-                        <a href="/">ACTION</a>
-                        <span>,</span>
-                        <a href="/">ADVANTURE</a>
-                    </h3>
-                </div>
-            </div>
-
-            <span>Welcome, {{ info }}!</span>
-            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sequi, minima. Illo, inventore ad? Itaque unde,
-                aliquid perferendis temporibus facere delectus qui dolores id esse assumenda aut corporis, magni modi
-                tenetur.</p>
-            <div class="headbtn flex">
-                <a href="/" id="d_btn1"><button class="button type1"></button></a>
-                <a href="/" id="d_btn1"><button class="button type2"></button></a>
-            </div>
-        </div>
-        <div class="dots flex">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
     </header>
+
+    <center>
+        <h2>Add a Quiz</h2>
+        <form action="{{ url_for('add_quiz') }}" method="post" enctype="multipart/form-data">
+            <label for="caption">Caption:</label>
+            <input type="text" id="caption" name="caption" class="form-control" required
+               pattern="^[^<>/]*$" title="Avoid using <, >, or / characters."><br><br>
+
+            <label for="file">Quiz File (PDF or Text):</label>
+            <input type="file" id="file" name="file" class="form-control-file" accept=".pdf, .txt" required><br><br>
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <input type="submit" value="Upload Quiz">
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </center>
 
     <main>
         <div class="threebox container flex">

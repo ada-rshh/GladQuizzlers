@@ -1,4 +1,5 @@
 import os
+import shutil
 import uuid
 
 from flask_mail import Mail, Message
@@ -50,6 +51,10 @@ from bson import ObjectId
 from datetime import datetime
 import datetime
 
+import fitz # PyMuPDF
+import io
+import tempfile
+
 # load env #
 load_dotenv()
 
@@ -94,6 +99,9 @@ comment_collection = db['comment']
 
 # newsletter content #
 newsletter_collection = db["newsletter"]
+
+# collection for quizzes
+quiz_collection = db["quiz"]  
 
 
 # jun wens configs #
@@ -648,14 +656,98 @@ def search_by_author():
 
 
 
+################################################## Add questions for quizzes #######################################################################################################
 
-ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+
+
+ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'pdf', 'txt'}
 MAX_FILE_SIZE = 1.5 * 1024 * 1024  # 1.5 MB in bytes
 
 
+
 def allowed_file(filename):
-    # ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    # ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def extract_questions_from_pdf(pdf_content):
+    questions = []
+
+    try:
+        # Create a temporary directory
+        temp_dir = tempfile.mkdtemp()
+
+        # Save the PDF content to a temporary file in the created directory
+        temp_pdf_path = os.path.join(temp_dir, "temp_pdf.pdf")
+        with open(temp_pdf_path, "wb") as temp_pdf:
+            temp_pdf.write(pdf_content)
+
+        # Open the temporary file with PyMuPDF
+        doc = fitz.open(temp_pdf_path)
+
+        for page_num in range(doc.page_count):
+            page = doc[page_num]
+            text = page.get_text()
+
+            # Split text into lines
+            lines = text.split('\n')
+
+            # Extract lines starting with "question" (case-insensitive)
+            for line in lines:
+                if line.strip().lower().startswith("question"):
+                    questions.append(line.strip())
+
+        # Check if any valid questions were found
+        if not questions:
+            raise ValueError("No valid questions found in the PDF")
+
+        return questions
+
+    except Exception as e:
+        # Handle exceptions (print or log the error, and consider raising a custom exception)
+        print(f"Error extracting questions: {e}")
+        return []
+
+    finally:
+        # Close the PyMuPDF document and delete the temporary directory
+        doc.close()
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+def save_questions_to_mongodb(caption, questions, file_content):
+    # Save the file to GridFS
+    fs = GridFS(db)
+    file_id = fs.put(file_content, filename=caption)
+
+    # Insert questions and file_id into the collection
+    quiz_collection.insert_one({'caption': caption, 'questions': questions, 'file_id': file_id})
+
+@app.route('/add_quiz', methods=['GET', 'POST'])
+def add_quiz():
+    questions = []  # Initialize questions here
+    if request.method == 'POST':
+        caption = request.form['caption']
+        file = request.files['file']
+
+        if file and allowed_file(file.filename) and len(file.read()) <= MAX_FILE_SIZE:
+            file.seek(0)  # Reset file pointer after reading
+            file_extension = file.filename.rsplit('.', 1)[1].lower()
+
+            if file_extension == 'pdf':
+                file_content = file.read()
+                questions = extract_questions_from_pdf(file_content)
+                save_questions_to_mongodb(caption, questions, file_content)
+
+            elif file_extension == 'txt':
+                # Handle text file extraction here if needed
+                pass
+
+            return render_template('quiz.html', caption=caption, questions=questions)
+
+    return render_template('upload_quiz.html')
+
+
+
+################################################## Add questions for quizzes #######################################################################################################
 
 
 
