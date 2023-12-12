@@ -6,15 +6,15 @@ const slider_btn = document.querySelectorAll('.dot');
 
 
 const backimg = {
-    fimg: './static/images/egypt-slider.jpg',
-    simg: './static/images/sliderimg2.jpg',
-    timg: './static/images/racecar.jpg'
+    fimg: './static/images/rise.jpg',
+    simg: './static/images/tiers.jpg',
+    timg: './static/images/challenger.jpg'
 }
 
 
 const slider_load = (index) =>{
     const images = [backimg.fimg, backimg.simg, backimg.timg]
-    const titles = ["EGYPT AND WORLD", "RISE OF THE TOMB RAIDER", "HORIZON 4"]
+    const titles = ["RISE UP", "THE RANKS", "TO THE WORLDS"]
 
     header.style.background = `url(${images[index]}) no-repeat center center/cover`;
     header_title.innerText = titles[index];

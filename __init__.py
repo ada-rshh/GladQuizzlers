@@ -83,10 +83,6 @@ db = client["Glad"]
 users_collection = db["users"]
 posts_collection = db['posts']
 
-# profanity in the comments #
-banned_words_collection = db["banned_words"]
-banned_words = ["fuck", "bitch", "motherfucker"]
-
 # admin side #
 report_collection = db["reports"]
 feedback_collection = db["feedbacks"]
@@ -109,7 +105,7 @@ stripe.api_key = os.environ['API_KEY']
 
 csp_policy = {
     'default-src': "'self'",
-    'script-src': "'self' 'unsafe-inline' js.stripe.com cdn.jsdelivr.net unpkg.com code.jquery.com",
+    'script-src': "'self' 'unsafe-inline' js.stripe.com cdn.jsdelivr.net unpkg.com code.jquery.com https://kit.fontawesome.com/your-real-fontawesome-kit.js",
     'style-src': "'self' 'unsafe-inline' https://cdnjs.cloudflare.com/ https://fonts.googleapis.com/ https://unpkg.com/",
     'connect-src': "'self' https://unpkg.com/",
     'img-src': "'self' https://unpkg.com/",
@@ -142,10 +138,6 @@ for cookie_name, domain in same_site_cookies:
     app.config['SESSION_COOKIE_SAMESITE'] = 'None'
     app.config['SESSION_COOKIE_SECURE'] = True
 
-
-
-for word in banned_words:
-    banned_words_collection.insert_one({"word": word})
 
 fs = GridFS(db)
 
@@ -677,10 +669,6 @@ def add_post():
             flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
             return redirect(url_for('add_post'))
 
-        elif contains_profanity(caption, banned_words_collection):
-            flash("Your caption contains inappropriate content. Please use a different caption.", "error")
-            return redirect(url_for('add_post'))
-
         photo = request.files['photo']
 
         # Save the photo to GridFS
@@ -726,10 +714,6 @@ def add_comment():
         flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
         return redirect(url_for('forum'))
 
-    elif contains_profanity(comment_text, banned_words_collection):
-        flash("Your caption contains inappropriate content. Please use a different caption.", "error")
-        return redirect(url_for('forum'))
-
     # Find the post in the database
     post = posts_collection.find_one({'_id': ObjectId(post_id)})
 
@@ -767,11 +751,6 @@ def edit_post(post_id):
         new_caption = request.form['caption']
         if any(char in '<>/\\' for char in new_caption):
             flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
-            return redirect(url_for('forum'))
-
-        # Check for banned words in the new caption
-        if contains_profanity(new_caption, banned_words_collection):
-            flash("Your caption contains inappropriate content. Please use a different caption.", "error")
             return redirect(url_for('forum'))
 
         # Update the 'caption' field of the post in the database
