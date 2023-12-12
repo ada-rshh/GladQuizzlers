@@ -55,6 +55,8 @@ import fitz # PyMuPDF
 import io
 import tempfile
 
+import logging
+
 # load env #
 load_dotenv()
 
@@ -155,6 +157,20 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
+
+#logging stuff
+logging.basicConfig(level=logging.DEBUG, filename="C:/Users/User/Downloads/Glad/example.log", filemode="w",
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S")
+
+def log_action(message):
+    """Helper function to log actions."""
+    logger.info(message)
+
+logger = logging.getLogger(__name__)
+logger.info("test the custom logger")
+
+#end of logging stuff   
 
 ###################       Security implementations       ###########################
 def login_required(f):
@@ -1164,7 +1180,15 @@ def create_admin_collection():
         admin_collection.insert_one(admin_details)
         print("Admin collection created and admin details inserted.")
 
-
+def check_role(username):
+    user = users_collection.find_one({'username': username})
+    
+    if user:
+        role = user.get('role')
+        log_action(f"Checked role for user '{username}'. Role: {role}")
+        return role 
+    
+    return 'user'
 
 #####   Add to app.run if need to make another admin account   #####
 # create_admin_collection()
