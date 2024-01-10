@@ -1,0 +1,9 @@
+2024-01-11 02:24:41 - INFO - test the custom logger
+2024-01-11 02:24:41 - DEBUG - Looking up time zone info from registry
+2024-01-11 02:24:41 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2024-01-11 02:24:41 - INFO - Added job "send_newsletter" to job store "default"
+2024-01-11 02:24:41 - INFO - Scheduler started
+2024-01-11 02:24:41 - DEBUG - Looking for jobs to run
+2024-01-11 02:24:41 - DEBUG - Next wakeup is due at 2024-01-11 02:29:41.680303+08:00 (in 300.000000 seconds)
+2024-01-11 02:24:41 - WARNING -  * Debugger is active!
+2024-01-11 02:24:41 - INFO -  * Debugger PIN: 132-228-945
