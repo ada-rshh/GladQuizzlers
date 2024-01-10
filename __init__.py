@@ -66,7 +66,8 @@ app.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS'].lower() == 'true'
 app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
 app.config['MAIL_DEFAULT_SENDER'] = os.environ['MAIL_DEFAULT_SENDER']
-app.config['MONGO_URI'] = os.environ['DATABASE_URL']
+# app.config['MONGO_URI'] = os.environ['DATABASE_URL']
+app.config['MONGO_URI'] = "mongodb+srv://EnvAware:envaware777%23@atlascluster.aej9sme.mongodb.net/?retryWrites=true&w=majority"
 app.jinja_env.filters['format_object_id'] = format_object_id
 csrf = CSRFProtect(app)
 
