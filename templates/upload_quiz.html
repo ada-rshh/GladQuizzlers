@@ -56,9 +56,12 @@
         </nav>
     </header>
 
+
+
+
     <center>
         <h2>Add a Quiz</h2>
-        <form action="{{ url_for('add_quiz') }}" method="post" enctype="multipart/form-data">
+        <form action="{{ url_for('upload_quiz') }}" method="post" enctype="multipart/form-data">
             <label for="caption">Caption:</label>
             <input type="text" id="caption" name="caption" class="form-control" required
                pattern="^[^<>/]*$" title="Avoid using <, >, or / characters."><br><br>
@@ -80,6 +83,19 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+
+        {% if quiz_data %}
+            <h3>Extracted Quiz Data:</h3>
+            <ul>
+                {% for item in quiz_data %}
+                    <li>
+                        <strong>Question:</strong> {{ item.question }}<br>
+                        <strong>Answers:</strong> {{ item.answers }}<br>
+                        <strong>Correct Answer:</strong> {{ item.correct_answer }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     </center>
 
     <main>
