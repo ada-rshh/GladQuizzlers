@@ -1,0 +1,32 @@
+{% extends 'teacherbase.html' %}
+{% block content %}
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <style>
+    a:link {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<h2 style="text-align:center; color:blue;">ADD COURSE</h2>
+<form method="POST" autocomplete="off" style="margin:100px;margin-top: 0px;">
+  {{ courseForm.hidden_tag() }}
+  <div class="form-group">
+    {{ courseForm.course_name.label(class="form-control-label") }}
+    {{ courseForm.course_name(class="form-control", placeholder="Java") }}
+  
+    {{ courseForm.question_number.label(class="form-control-label") }}
+    {{ courseForm.question_number(class="form-control", placeholder="10") }}
+  
+    {{ courseForm.total_marks.label(class="form-control-label") }}
+    {{ courseForm.total_marks(class="form-control", placeholder="50") }}
+  </div>
+
+  <button type="submit" class="btn btn-primary">ADD</button>
+</form>
+
+<br><br><br>
+{% endblock content %}

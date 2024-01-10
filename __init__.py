@@ -12,7 +12,7 @@ from flask import session
 from flask import Flask, render_template, request, redirect, url_for, flash, abort, g
 from pymongo import MongoClient
 import pymongo
-from Forms import FeedbackForm, ReportForm, ComposeNewsletterForm, CommentForm, EditForm, Report_c_Form
+from Forms import FeedbackForm, ReportForm, ComposeNewsletterForm, CommentForm, EditForm, Report_c_Form, CourseForm, QuestionForm, ResultForm
 from filters import format_object_id
 from bson.objectid import ObjectId
 import bson
@@ -111,18 +111,18 @@ stripe.api_key = os.environ['API_KEY']
 
 
 
-csp_policy = {
-    'default-src': "'self'",
-    'script-src': "'self' 'unsafe-inline' js.stripe.com cdn.jsdelivr.net unpkg.com code.jquery.com https://kit.fontawesome.com/your-real-fontawesome-kit.js",
-    'style-src': "'self' 'unsafe-inline' https://cdnjs.cloudflare.com/ https://fonts.googleapis.com/ https://unpkg.com/",
-    'connect-src': "'self' https://unpkg.com/",
-    'img-src': "'self' https://unpkg.com/",
-    'font-src': "'self' https://cdnjs.cloudflare.com/ https://fonts.gstatic.com/ https://unpkg.com/",
-    'frame-src': "'self' https://js.stripe.com/ https://www.google.com/",
-}
+# csp_policy = {
+#     'default-src': "'self'",
+#     'script-src': "'self' 'unsafe-inline' js.stripe.com cdn.jsdelivr.net unpkg.com code.jquery.com https://kit.fontawesome.com/your-real-fontawesome-kit.js",
+#     'style-src': "'self' 'unsafe-inline' https://cdnjs.cloudflare.com/ https://fonts.googleapis.com/ https://unpkg.com/",
+#     'connect-src': "'self' https://unpkg.com/",
+#     'img-src': "'self' https://unpkg.com/",
+#     'font-src': "'self' https://cdnjs.cloudflare.com/ https://fonts.gstatic.com/ https://unpkg.com/",
+#     'frame-src': "'self' https://js.stripe.com/ https://www.google.com/",
+# }
 
 
-talisman = Talisman(app, content_security_policy=csp_policy)
+# talisman = Talisman(app, content_security_policy=csp_policy)
 
 
 
@@ -670,80 +670,176 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def extract_questions_from_pdf(pdf_content):
-    questions = []
+# def extract_questions_from_pdf(pdf_content):
+#     questions = []
 
-    try:
-        # Create a temporary directory
-        temp_dir = tempfile.mkdtemp()
+#     try:
+#         # Create a temporary directory
+#         temp_dir = tempfile.mkdtemp()
 
-        # Save the PDF content to a temporary file in the created directory
-        temp_pdf_path = os.path.join(temp_dir, "temp_pdf.pdf")
-        with open(temp_pdf_path, "wb") as temp_pdf:
-            temp_pdf.write(pdf_content)
+#         # Save the PDF content to a temporary file in the created directory
+#         temp_pdf_path = os.path.join(temp_dir, "temp_pdf.pdf")
+#         with open(temp_pdf_path, "wb") as temp_pdf:
+#             temp_pdf.write(pdf_content)
 
-        # Open the temporary file with PyMuPDF
-        doc = fitz.open(temp_pdf_path)
+#         # Open the temporary file with PyMuPDF
+#         doc = fitz.open(temp_pdf_path)
 
-        for page_num in range(doc.page_count):
-            page = doc[page_num]
-            text = page.get_text()
+#         for page_num in range(doc.page_count):
+#             page = doc[page_num]
+#             text = page.get_text()
 
-            # Split text into lines
-            lines = text.split('\n')
+#             # Split text into lines
+#             lines = text.split('\n')
 
-            # Extract lines starting with "question" (case-insensitive)
-            for line in lines:
-                if line.strip().lower().startswith("question"):
-                    questions.append(line.strip())
+#             # Extract lines starting with "question" (case-insensitive)
+#             for line in lines:
+#                 if line.strip().lower().startswith("question"):
+#                     questions.append(line.strip())
 
-        # Check if any valid questions were found
-        if not questions:
-            raise ValueError("No valid questions found in the PDF")
+#         # Check if any valid questions were found
+#         if not questions:
+#             raise ValueError("No valid questions found in the PDF")
 
-        return questions
+#         return questions
 
-    except Exception as e:
-        # Handle exceptions (print or log the error, and consider raising a custom exception)
-        print(f"Error extracting questions: {e}")
-        return []
+#     except Exception as e:
+#         # Handle exceptions (print or log the error, and consider raising a custom exception)
+#         print(f"Error extracting questions: {e}")
+#         return []
 
-    finally:
-        # Close the PyMuPDF document and delete the temporary directory
-        doc.close()
-        shutil.rmtree(temp_dir, ignore_errors=True)
+#     finally:
+#         # Close the PyMuPDF document and delete the temporary directory
+#         doc.close()
+#         shutil.rmtree(temp_dir, ignore_errors=True)
 
-def save_questions_to_mongodb(caption, questions, file_content):
-    # Save the file to GridFS
-    fs = GridFS(db)
-    file_id = fs.put(file_content, filename=caption)
+# def save_questions_to_mongodb(caption, questions, file_content):
+#     # Save the file to GridFS
+#     fs = GridFS(db)
+#     file_id = fs.put(file_content, filename=caption)
 
-    # Insert questions and file_id into the collection
-    quiz_collection.insert_one({'caption': caption, 'questions': questions, 'file_id': file_id})
+#     # Insert questions and file_id into the collection
+#     quiz_collection.insert_one({'caption': caption, 'questions': questions, 'file_id': file_id})
 
-@app.route('/add_quiz', methods=['GET', 'POST'])
-def add_quiz():
-    questions = []  # Initialize questions here
-    if request.method == 'POST':
-        caption = request.form['caption']
-        file = request.files['file']
+# @app.route('/upload_quiz', methods=['GET', 'POST'])
+# def upload_quiz():
+#     questions = []  # Initialize questions here
+#     if request.method == 'POST':
+#         caption = request.form['caption']
+#         file = request.files['file']
 
-        if file and allowed_file(file.filename) and len(file.read()) <= MAX_FILE_SIZE:
-            file.seek(0)  # Reset file pointer after reading
-            file_extension = file.filename.rsplit('.', 1)[1].lower()
+#         if file and allowed_file(file.filename) and len(file.read()) <= MAX_FILE_SIZE:
+#             file.seek(0)  # Reset file pointer after reading
+#             file_extension = file.filename.rsplit('.', 1)[1].lower()
 
-            if file_extension == 'pdf':
-                file_content = file.read()
-                questions = extract_questions_from_pdf(file_content)
-                save_questions_to_mongodb(caption, questions, file_content)
+#             if file_extension == 'pdf':
+#                 file_content = file.read()
+#                 questions = extract_questions_from_pdf(file_content)
+#                 save_questions_to_mongodb(caption, questions, file_content)
 
-            elif file_extension == 'txt':
-                # Handle text file extraction here if needed
-                pass
+#             elif file_extension == 'txt':
+#                 # Handle text file extraction here if needed
+#                 pass
 
-            return render_template('quiz.html', caption=caption, questions=questions)
+#             return render_template('quiz.html', caption=caption, questions=questions)
 
-    return render_template('upload_quiz.html')
+#     return render_template('upload_quiz.html')
+
+
+
+
+# def extract_quiz_data(pdf_path):
+#     with fitz.open(pdf_path) as pdf_document:
+#         num_pages = pdf_document.page_count
+
+#         quiz_data = []
+
+#         for page_num in range(num_pages):
+#             page = pdf_document[page_num]
+#             text = page.get_text()
+
+#             # Use regular expressions to identify questions and answers
+#             question_pattern = re.compile(r'Question (\d+):(.+?)(?=(\nAnswer|\nCorrect)|$)', re.DOTALL)
+#             answer_pattern = re.compile(r'Answer:(.+?)(?=(\nCorrect|$))', re.DOTALL)
+#             correct_answer_pattern = re.compile(r'Correct:(.+?)(?=\n|$)', re.DOTALL)
+
+#             questions = question_pattern.findall(text)
+#             answers = answer_pattern.findall(text)
+#             correct_answers = correct_answer_pattern.findall(text)
+
+#             # Add data to the quiz_data list
+#             for question in questions:
+#                 q_num, q_text = question
+#                 quiz_data.append({
+#                     'question': f"{q_num}: {q_text.strip()}",
+#                     'answers': [ans.strip() for ans in answers[i].split(',')],
+#                     'correct_answer': correct_answers[i].strip()
+#                 })
+
+#     print("Extracted Quiz Data:", quiz_data)
+#     return quiz_data
+
+
+
+
+# @app.route('/upload_quiz', methods=['GET', 'POST'])
+# def upload_quiz():
+#     if request.method == 'POST':
+#         if 'file' not in request.files:
+#             flash('No file part', 'error')
+#             return redirect(request.url)
+
+#         file = request.files['file']
+
+#         if file.filename == '':
+#             flash('No selected file', 'error')
+#             return redirect(request.url)
+
+#         if file:
+#             # Save the uploaded file to the 'uploads' directory
+#             upload_directory = 'uploads'
+#             os.makedirs(upload_directory, exist_ok=True)
+#             file_path = os.path.join(upload_directory, file.filename)
+#             file.save(file_path)
+
+#             # Save file path and quiz data to MongoDB
+#             quiz_data = extract_quiz_data(file_path)
+#             print("Extracted Quiz Data:", quiz_data)  # Add this line for debugging
+#             quiz_document = {'file_path': file_path, 'quiz_data': quiz_data}
+#             quiz_collection.insert_one(quiz_document)
+
+#             flash('Quiz uploaded successfully', 'success')
+#             return render_template('upload_quiz.html', quiz_data=quiz_data)
+
+#     return render_template('upload_quiz.html')
+
+
+
+# @app.route('/quiz')
+# def quiz():
+#     # Retrieve quiz data from MongoDB
+#     quiz_data = quiz_collection.find()
+
+#     return render_template('quiz.html', quiz_data=quiz_data)
+
+
+
+# @app.route('/submit_quiz', methods=['POST'])
+# def submit_quiz():
+#     # Handle user-submitted answers
+#     user_answers = request.form.to_dict()
+    
+#     # Compare user answers with correct answers
+#     for question_id, user_answer in user_answers.items():
+#         correct_answer = quiz_collection.find_one({'_id': ObjectId(question_id)})['correct_answer']
+#         if user_answer == correct_answer:
+#             feedback = "Correct!"
+#         else:
+#             feedback = "Incorrect."
+
+#         # You can update a user's feedback in MongoDB or do other actions as needed.
+
+#     return render_template('feedback.html', feedback=feedback)
 
 
 
@@ -751,153 +847,268 @@ def add_quiz():
 
 
 
-@app.route('/add_post', methods=['GET', 'POST'])
-@login_required
-def add_post():
-    if request.method == 'POST':
-        # Get the data from the form
-        caption = request.form['caption']
-        if any(char in '<>/\\' for char in caption):
-            flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
-            return redirect(url_for('add_post'))
+# @app.route('/add_post', methods=['GET', 'POST'])
+# @login_required
+# def add_post():
+#     if request.method == 'POST':
+#         # Get the data from the form
+#         caption = request.form['caption']
+#         if any(char in '<>/\\' for char in caption):
+#             flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
+#             return redirect(url_for('add_post'))
 
-        photo = request.files['photo']
+#         photo = request.files['photo']
 
-        # Save the photo to GridFS
-        if photo and allowed_file(photo.filename) and len(photo.read()) <= MAX_FILE_SIZE:
-            photo.seek(0)  # Reset file pointer after reading
-            filename = secure_filename(photo.filename)
-            file_id = fs.put(photo, filename=filename)
+#         # Save the photo to GridFS
+#         if photo and allowed_file(photo.filename) and len(photo.read()) <= MAX_FILE_SIZE:
+#             photo.seek(0)  # Reset file pointer after reading
+#             filename = secure_filename(photo.filename)
+#             file_id = fs.put(photo, filename=filename)
 
-            # Obtain the current user's ID from the session
-            current_user_id = session.get('username')  # Replace 'user_id' with the actual key you use to store user ID in session
+#             # Obtain the current user's ID from the session
+#             current_user_id = session.get('username')  # Replace 'user_id' with the actual key you use to store user ID in session
 
-            # Insert the new post into the database with 'author_id' field
-            post = {
-                'author_id': current_user_id,
-                'image_file_id': file_id,
-                'caption': caption,
-                'comments': []
-            }
-            posts_collection.insert_one(post)
+#             # Insert the new post into the database with 'author_id' field
+#             post = {
+#                 'author_id': current_user_id,
+#                 'image_file_id': file_id,
+#                 'caption': caption,
+#                 'comments': []
+#             }
+#             posts_collection.insert_one(post)
 
-            return redirect(url_for('forum'))
-
-
-        else:
-            flash("Invalid file. Please upload a valid image (up to 1.5 MB) with allowed extensions: jpg, jpeg, png, gif.","error")
-            return redirect(url_for('add_post'))
-
-    return render_template('upload_post.html')
+#             return redirect(url_for('forum'))
 
 
+#         else:
+#             flash("Invalid file. Please upload a valid image (up to 1.5 MB) with allowed extensions: jpg, jpeg, png, gif.","error")
+#             return redirect(url_for('add_post'))
 
-def get_current_user_id():
-    return session.get('username')
+#     return render_template('upload_post.html')
 
 
 
-@app.route('/add_comment', methods=['POST'])
-def add_comment():
-    # Get the data from the form
-    post_id = request.form['post_id']
-    comment_text = request.form['comment_text']
-    if any(char in '<>/\\' for char in comment_text):
-        flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
-        return redirect(url_for('forum'))
+# def get_current_user_id():
+#     return session.get('username')
 
-    # Find the post in the database
-    post = posts_collection.find_one({'_id': ObjectId(post_id)})
 
-    if post:
-        # Add the comment to the post with user information
-        current_user_id = session.get('username')  # Replace 'user_id' with the actual key you use to store user ID in session
-        comment_data = {
-            'username': current_user_id,
-            'comment_text': comment_text
+
+# @app.route('/add_comment', methods=['POST'])
+# def add_comment():
+#     # Get the data from the form
+#     post_id = request.form['post_id']
+#     comment_text = request.form['comment_text']
+#     if any(char in '<>/\\' for char in comment_text):
+#         flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
+#         return redirect(url_for('forum'))
+
+#     # Find the post in the database
+#     post = posts_collection.find_one({'_id': ObjectId(post_id)})
+
+#     if post:
+#         # Add the comment to the post with user information
+#         current_user_id = session.get('username')  # Replace 'user_id' with the actual key you use to store user ID in session
+#         comment_data = {
+#             'username': current_user_id,
+#             'comment_text': comment_text
+#         }
+#         post['comments'].append(comment_data)
+#         posts_collection.update_one({'_id': ObjectId(post_id)}, {'$set': post})
+
+#         # Return the added comment as part of the JSON response
+#         return jsonify({'comment': comment_text}), 200
+
+#     # If the post is not found, return an error response
+#     return jsonify({'error': 'Post not found'}), 404
+
+
+
+# @app.route('/edit_post/<post_id>', methods=['GET', 'POST'])
+# def edit_post(post_id):
+#     # Retrieve the post from the database based on the provided 'post_id'
+#     post = posts_collection.find_one({'_id': ObjectId(post_id)})
+
+#     # Check if the post is not found or the user is not authorized to edit it
+#     if not post or post['author_id'] != session.get('username'):
+#         flash("You are not authorized to edit this post", "error")
+#         return redirect(url_for('forum'))
+
+#     # Process the POST request (when the form is submitted)
+#     if request.method == 'POST':
+#         # Get the new caption from the form
+#         new_caption = request.form['caption']
+#         if any(char in '<>/\\' for char in new_caption):
+#             flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
+#             return redirect(url_for('forum'))
+
+#         # Update the 'caption' field of the post in the database
+#         posts_collection.update_one({'_id': ObjectId(post_id)}, {'$set': {'caption': new_caption}})
+
+#         # Redirect to the 'forum' route after the post is edited
+#         return redirect(url_for('forum'))
+
+
+#     return render_template('edit_post.html', post=post)
+
+
+
+# @app.route('/delete_post/<post_id>', methods=['POST'])
+# @csrf.exempt  # Since you're validating CSRF token manually, exempt this route
+# def delete_post(post_id):
+#     try:
+#         post = posts_collection.find_one({"_id": ObjectId(post_id)})
+
+#         if post:
+#             # Check if the current user's username matches the post's creator username
+#             if post["author_id"] == session.get('username'):
+#                 # Delete post document
+#                 posts_collection.delete_one({"_id": post["_id"]})
+#                 # Delete associated image
+#                 fs.delete(post["image_file_id"])
+#                 return jsonify({"message": "Post deleted successfully"}), 200
+#             else:
+#                 return jsonify({"message": "You are not authorized to delete this post"}), 403
+#         else:
+#             return jsonify({"message": "Post not found"}), 404
+
+#     except Exception as e:
+#         return jsonify({"message": str(e)}), 500
+
+
+
+# @app.route('/admin_delete_post/<post_id>', methods=['POST'])
+# @admin_login_required
+# @csrf.exempt  # Since you're validating CSRF token manually, exempt this route
+# def admin_delete_post(post_id):
+#     try:
+#         # Delete the post and its associated image from MongoDB
+#         post = posts_collection.find_one({"_id": ObjectId(post_id)})
+#         if post:
+#             # Delete post document
+#             posts_collection.delete_one({"_id": post["_id"]})
+#             # Delete associated image
+#             fs.delete(post["image_file_id"])
+#             return jsonify({"message": "Post deleted successfully"}), 200
+#         else:
+#             return jsonify({"message": "Post not found"}), 404
+
+#     except Exception as e:
+#         return jsonify({"message": str(e)}), 500
+
+
+
+
+@app.route('/teacher_dashboard')
+def teacher_dashboard_view():
+    total_course = quiz_collection.count_documents({})
+    # total_question = quiz_collection.aggregate([
+    #     {"$group": {"_id": None, "total": {"$sum": "$question_number"}}}
+    # ]).next()['total']
+    total_users = users_collection.count_documents({})  # Assuming you want to count the number of users
+
+    context = {
+        'total_course': total_course,
+        # 'total_question': total_question,
+        'total_users': total_users  # Change to total_users
+    }
+    return render_template('teacher_dashboard.html', context=context)
+
+@app.route('/teacher_exam', methods=['GET', 'POST'])
+def teacher_exam():
+    return render_template('teacher_exam.html')
+
+@app.route('/teacher_add-exam', methods=['GET', 'POST'])
+def teacher_add_exam_view():
+    courseForm = CourseForm()
+
+    if courseForm.validate_on_submit():
+        course_name = courseForm.course_name.data
+        question_number = courseForm.question_number.data
+        total_marks = courseForm.total_marks.data
+
+        course_data = {
+            'course_name': course_name,
+            'question_number': question_number,
+            'total_marks': total_marks
         }
-        post['comments'].append(comment_data)
-        posts_collection.update_one({'_id': ObjectId(post_id)}, {'$set': post})
 
-        # Return the added comment as part of the JSON response
-        return jsonify({'comment': comment_text}), 200
+        quiz_collection.insert_one(course_data)
+        return redirect('/teacher_view-exam')
 
-    # If the post is not found, return an error response
-    return jsonify({'error': 'Post not found'}), 404
+    return render_template('teacher_add_exam.html', courseForm=courseForm)
 
+@app.route('/teacher_view-exam')
+def teacher_view_exam_view():
+    courses = quiz_collection.find()
+    return render_template('teacher_view_exam.html', courses=courses)
 
+@app.route('/teacher_delete-exam/<string:course_id>')
+def delete_exam_view(course_id):
+    quiz_collection.delete_one({'_id': ObjectId(course_id)})
+    return redirect('/teacher_view-exam')
 
-@app.route('/edit_post/<post_id>', methods=['GET', 'POST'])
-def edit_post(post_id):
-    # Retrieve the post from the database based on the provided 'post_id'
-    post = posts_collection.find_one({'_id': ObjectId(post_id)})
+@app.route('/teacher_question', methods=['GET', 'POST'])
+def teacher_question():
+    return render_template('teacher_question.html')
 
-    # Check if the post is not found or the user is not authorized to edit it
-    if not post or post['author_id'] != session.get('username'):
-        flash("You are not authorized to edit this post", "error")
-        return redirect(url_for('forum'))
+@app.route('/teacher_add-question', methods=['GET', 'POST'])
+def teacher_add_question_view():
+    question_form = QuestionForm()
+    course_form = CourseForm()
 
-    # Process the POST request (when the form is submitted)
     if request.method == 'POST':
-        # Get the new caption from the form
-        new_caption = request.form['caption']
-        if any(char in '<>/\\' for char in new_caption):
-            flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
-            return redirect(url_for('forum'))
+        if question_form.validate_on_submit():
+            # Process question form data
+            marks = question_form.marks.data
+            question_text = question_form.question.data
+            option1 = question_form.option1.data
+            option2 = question_form.option2.data
+            option3 = question_form.option3.data
+            option4 = question_form.option4.data
+            answer = question_form.answer.data
 
-        # Update the 'caption' field of the post in the database
-        posts_collection.update_one({'_id': ObjectId(post_id)}, {'$set': {'caption': new_caption}})
+            # Retrieve selected course ID from the form
+            course_id = course_form.course_id.data
 
-        # Redirect to the 'forum' route after the post is edited
-        return redirect(url_for('forum'))
+            # Create a new question dictionary
+            question = {
+                'marks': marks,
+                'question': question_text,
+                'option1': option1,
+                'option2': option2,
+                'option3': option3,
+                'option4': option4,
+                'answer': answer,
+            }
 
+            # Update the course with the new question
+            quiz_collection.update_one({'_id': ObjectId(course_id)}, {'$push': {'questions': question}})
 
-    return render_template('edit_post.html', post=post)
+            return redirect('/teacher_view-question')
 
+    # Load the existing courses for the form
+    courses = quiz_collection.find()
+    
+    return render_template('teacher_add_question.html', question_form=question_form, course_form=course_form, courses=courses)
 
+@app.route('/teacher_view-question')
+def teacher_view_question_view():
+    courses = quiz_collection.find()
+    return render_template('teacher_view_question.html', courses=courses)
 
-@app.route('/delete_post/<post_id>', methods=['POST'])
-@csrf.exempt  # Since you're validating CSRF token manually, exempt this route
-def delete_post(post_id):
-    try:
-        post = posts_collection.find_one({"_id": ObjectId(post_id)})
+@app.route('/teacher_see-question/<string:course_id>')
+def see_question_view(course_id):
+    course = quiz_collection.find_one({'_id': ObjectId(course_id)})
+    questions = course.get('questions', [])
+    return render_template('see_question.html', questions=questions)
 
-        if post:
-            # Check if the current user's username matches the post's creator username
-            if post["author_id"] == session.get('username'):
-                # Delete post document
-                posts_collection.delete_one({"_id": post["_id"]})
-                # Delete associated image
-                fs.delete(post["image_file_id"])
-                return jsonify({"message": "Post deleted successfully"}), 200
-            else:
-                return jsonify({"message": "You are not authorized to delete this post"}), 403
-        else:
-            return jsonify({"message": "Post not found"}), 404
-
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
-
-
-
-@app.route('/admin_delete_post/<post_id>', methods=['POST'])
-@admin_login_required
-@csrf.exempt  # Since you're validating CSRF token manually, exempt this route
-def admin_delete_post(post_id):
-    try:
-        # Delete the post and its associated image from MongoDB
-        post = posts_collection.find_one({"_id": ObjectId(post_id)})
-        if post:
-            # Delete post document
-            posts_collection.delete_one({"_id": post["_id"]})
-            # Delete associated image
-            fs.delete(post["image_file_id"])
-            return jsonify({"message": "Post deleted successfully"}), 200
-        else:
-            return jsonify({"message": "Post not found"}), 404
-
-    except Exception as e:
-        return jsonify({"message": str(e)}), 500
+@app.route('/teacher_remove-question/<string:course_id>/<string:question_id>')
+def remove_question_view(course_id, question_id):
+    quiz_collection.update_one(
+        {'_id': ObjectId(course_id)},
+        {'$pull': {'questions': {'_id': ObjectId(question_id)}}}
+    )
+    return redirect('/teacher_view-question')
 
 
 
@@ -915,16 +1126,7 @@ def get_image(file_id):
         return response
     else:
         return 'Image not found'
-
-
-
-def contains_profanity(text, banned_words_collection):
-    for word_doc in banned_words_collection.find():
-        word = word_doc["word"]
-        if word.lower() in text.lower():
-            return True
-    return False
-
+    
 
 
 #####################################   lionel - codes       ######################################

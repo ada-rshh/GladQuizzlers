@@ -56,7 +56,7 @@
         </nav>
     </header>
 
-    <center>
+    <!-- <center>
     <div class="quiz-cards-container" id="quiz-container">
         {% for question in questions %}
             <div class="quiz-card" id="question-{{ loop.index }}">
@@ -68,7 +68,32 @@
             </div>
         {% endfor %}
     </div>
-</center>
+</center> -->
+
+<center>
+{% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if quiz_data %}
+            <h3>Extracted Quiz Data:</h3>
+            <ul>
+                {% for item in quiz_data %}
+                    <li>
+                        <strong>Question:</strong> {{ item.question }}<br>
+                        <strong>Answers:</strong> {{ item.answers }}<br>
+                        <strong>Correct Answer:</strong> {{ item.correct_answer }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </center>
 
 
     <main>
