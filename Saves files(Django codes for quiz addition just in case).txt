@@ -1,0 +1,119 @@
+# Saves files
+
+
+# django implementation for add quiz here:
+
+
+# @app.route('/teacher_dashboard')
+# def teacher_dashboard_view(request):
+#     dict={
+    
+#     'total_course':QMODEL.Course.objects.all().count(),
+#     'total_question':QMODEL.Question.objects.all().count(),
+#     'total_student':SMODEL.Student.objects.all().count()
+#     }
+#     return render_template('teacher_dashboard.html',context=dict)
+
+# @app.route('/teacher_exam')
+# def teacher_exam_view(request):
+#     return render_template('teacher_exam.html')
+
+
+# @app.route('/teacher_add-exam', methods=['GET', 'POST'])
+# def teacher_add_exam_view(request):
+#     courseForm=QFORM.CourseForm()
+#     if request.method=='POST':
+#         courseForm=QFORM.CourseForm(request.POST)
+#         if courseForm.is_valid():        
+#             courseForm.save()
+#         else:
+#             print("form is invalid")
+#         return redirect('teacher-view-exam')
+#     return render_template('teacher/teacher_add_exam.html',{'courseForm':courseForm})
+
+# @app.route('/teacher_view-exam')
+# def teacher_view_exam_view(request):
+#     courses = QMODEL.Course.objects.all()
+#     return redirect('/teacher_view_exam.html',{'courses':courses})
+
+# @app.route('/teacher_delete-exam/<int:pk>')
+# def delete_exam_view(request,pk):
+#     course=QMODEL.Course.objects.get(id=pk)
+#     course.delete()
+#     return redirect('/teacher-view-exam')
+
+# @app.route('/teacher_question')
+# def teacher_question_view(request):
+#     return render_template(request,'teacher/teacher_question.html')
+
+# @app.route('/teacher_add-question', methods=['GET', 'POST'])
+# def teacher_add_question_view(request):
+#     questionForm=QFORM.QuestionForm()
+#     if request.method=='POST':
+#         questionForm=QFORM.QuestionForm(request.POST)
+#         if questionForm.is_valid():
+#             question=questionForm.save(commit=False)
+#             course=QMODEL.Course.objects.get(id=request.POST.get('courseID'))
+#             question.course=course
+#             question.save()       
+#         else:
+#             print("form is invalid")
+#         return redirect('/teacher-view-question')
+#     return render_template('teacher_add_question.html',{'questionForm':questionForm})
+
+# @app.route('/teacher_view-question')
+# def teacher_view_question_view(request):
+#     courses= QMODEL.Course.objects.all()
+#     return render_template('teacher_view_question.html',{'courses':courses})
+
+# @app.route('/teacher_see-question/<int:pk>')
+# def see_question_view(request,pk):
+#     questions=QMODEL.Question.objects.all().filter(course_id=pk)
+#     return render_template('see_question.html',{'questions':questions})
+
+# @app.route('/teacher_remove-question/<int:pk>')
+# def remove_question_view(request,pk):
+#     question=QMODEL.Question.objects.get(id=pk)
+#     question.delete()
+#     return redirect('/teacher-view-question')
+
+
+
+
+
+
+
+######### current python flask saves ###########
+
+@app.route('/teacher_add-question', methods=['GET', 'POST'])
+def teacher_add_question_view():
+    form = QuestionForm()
+
+    if form.validate_on_submit():
+        marks = form.marks.data
+        question_text = form.question.data
+        option1 = form.option1.data
+        option2 = form.option2.data
+        option3 = form.option3.data
+        option4 = form.option4.data
+        answer = form.answer.data
+        course_id = request.form.get('courseID')
+
+        course = quiz_collection.find_one({'_id': ObjectId(course_id)})
+
+        question = {
+            'marks': marks,
+            'question': question_text,
+            'option1': option1,
+            'option2': option2,
+            'option3': option3,
+            'option4': option4,
+            'answer': answer,
+            'course': course
+        }
+
+        quiz_collection.update_one({'_id': ObjectId(course_id)}, {'$push': {'questions': question}})
+        return redirect('/teacher_view-question')
+
+    courses = quiz_collection.find()
+    return render_template('teacher_add_question.html', form=form, courses=courses)

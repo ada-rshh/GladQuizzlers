@@ -1,0 +1,60 @@
+{% extends 'teacherbase.html' %}
+{% block content %}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+      a:link {
+        text-decoration: none;
+      }
+    </style>
+</head>
+<h2 style="text-align:center; color:blue;">ADD QUESTION</h2>
+<form method="POST" autocomplete="off" style="margin:100px;margin-top: 0px;">
+  {{ question_form.hidden_tag() }}
+
+  <!-- Dynamically generate options for the dropdown -->
+  <div class="form-group">
+    <label for="courseDropdown" class="form-control-label">Select Course</label>
+    <select class="form-control" id="courseDropdown" name="course_id">
+      {% for course in courses %}
+        <option value="{{ course._id }}">{{ course.course_name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Rest of the question form fields -->
+  <div class="form-group">
+      {{ question_form.marks.label(class="form-control-label") }}
+      {{ question_form.marks(class="form-control", placeholder="Enter marks") }}
+      
+      {{ question_form.question.label(class="form-control-label") }}
+      {{ question_form.question(class="form-control", placeholder="Enter question") }}
+      
+      {{ question_form.option1.label(class="form-control-label") }}
+      {{ question_form.option1(class="form-control", placeholder="Enter option 1") }}
+      
+      {{ question_form.option2.label(class="form-control-label") }}
+      {{ question_form.option2(class="form-control", placeholder="Enter option 2") }}
+      
+      {{ question_form.option3.label(class="form-control-label") }}
+      {{ question_form.option3(class="form-control", placeholder="Enter option 3") }}
+      
+      {{ question_form.option4.label(class="form-control-label") }}
+      {{ question_form.option4(class="form-control", placeholder="Enter option 4") }}
+      
+      {{ question_form.answer.label(class="form-control-label") }}
+      {{ question_form.answer(class="form-control") }}
+  </div>
+
+  <button type="submit" class="btn btn-primary">ADD</button>
+</form>
+
+<br><br><br>
+{% endblock content %}
