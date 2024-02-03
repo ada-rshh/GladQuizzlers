@@ -56,35 +56,63 @@
 //});
 
 
+// const formPopup = document.querySelector(".form-popup");
+// const close = document.querySelector(".close");
+
+// // Function to show the form popup
+// function showPopup() {
+//     formPopup.classList.add("show");
+// }
+
+// // Function to hide the form popup
+// function hidePopup() {
+//     formPopup.classList.remove("show");
+// }
+
+// // Call showPopup function when the "LOGIN" button is clicked
+// document.querySelector(".open-button").addEventListener("click", function () {
+//     showPopup();
+// });
+
+// // Call hidePopup function when the close button is clicked
+// close.addEventListener("click", function () {
+//     hidePopup();
+// });
+
+// // On window load, also trigger the showPopup function after a certain time
+// window.addEventListener("load", function () {
+//     setTimeout(function () {
+//         showPopup();
+//     }, 5000); // Adjust the time limit as needed
+// });
+
+
+
 const formPopup = document.querySelector(".form-popup");
 const close = document.querySelector(".close");
 
 // Function to show the form popup
-function showPopup() {
-    formPopup.classList.add("show");
+function showPopup(formId) {
+    document.getElementById(formId).classList.add("show");
 }
 
 // Function to hide the form popup
-function hidePopup() {
-    formPopup.classList.remove("show");
+function hidePopup(formId) {
+    document.getElementById(formId).classList.remove("show");
 }
 
 // Call showPopup function when the "LOGIN" button is clicked
-document.querySelector(".open-button").addEventListener("click", function () {
-    showPopup();
+document.querySelector(".open-login").addEventListener("click", function () {
+    showPopup('loginForm');
+});
+
+// Call showPopup function when the "SIGN UP" button is clicked
+document.querySelector(".open-signup").addEventListener("click", function () {
+    showPopup('signupForm');
 });
 
 // Call hidePopup function when the close button is clicked
 close.addEventListener("click", function () {
-    hidePopup();
+    hidePopup('loginForm'); // Update with the correct form ID
+    hidePopup('signupForm'); // Update with the correct form ID
 });
-
-// On window load, also trigger the showPopup function after a certain time
-window.addEventListener("load", function () {
-    setTimeout(function () {
-        showPopup();
-    }, 5000); // Adjust the time limit as needed
-});
-
-
-

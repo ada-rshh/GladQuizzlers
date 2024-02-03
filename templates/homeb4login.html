@@ -30,9 +30,9 @@
                     <i class="fa-brands fa-twitch"></i>
                 </div>
                 <div class="lsbtn flex">
-                <button class="open-button" onclick="openForm()">LOGIN</button>
-                <button onclick="location.href='/signup'">SIGN UP</button>
-            </div>
+                <button class="open-button open-login">LOGIN</button>
+                <button class="open-button open-signup">SIGN UP</button>
+                </div>
             </div>
             <div class="mainnav flex">
                 <div class="logo">
@@ -83,7 +83,7 @@
             <div class="dot"></div>
         </div>
         <!-- Add this div for the login form -->
-            <div class="form-popup" id="myForm">
+            <div class="form-popup" id="loginForm">
                 <div class="box">
                     <div class="img-area">
                         <div class="img">
@@ -114,16 +114,85 @@
                 </div>
             </div>
         </div>
-         <script>
-        // Add your existing JavaScript...
-        function openForm() {
-            document.getElementById("myForm").style.display = "block";
-        }
 
-        function closeForm() {
-            document.getElementById("myForm").style.display = "none";
-        }
-    </script>
+    </div>
+    <!-- Add this div for the sign up form -->
+        <div class="form-popup" id="signupForm">
+            <div class="box">
+                <div class="img-area">
+                    <div class="img">
+                    </div>
+                    <h1>Your Logo</h1>
+                </div>
+                <div class="form">
+                    <div class="close" onclick="closeForm()">&times;</div>
+                    <h1>Sign Up</h1>
+                    <form action="/form_signup" class="form-container" method="post">
+                    <div class="form-group">
+                        <label for="email"><b>Email</b></label>
+                        <input type="email" placeholder="Enter Email" name="email" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="username"><b>Username</b></label>
+                        <input type="text" placeholder="Enter Username" name="username" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="password"><b>Password</b></label>
+                        <input type="password" placeholder="Enter Password" name="password" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="password"><b>Confirm Password</b></label>
+                        <input type="password" placeholder="Confirm Password" name="confirm" required class="form-control">
+                    </div>
+                    <div class="news">
+                        <label for="subscribe">Subscribe to Newsletter:</label>
+                        <input type="checkbox" name="subscribe" id="subscribe" checked>
+                    </div>
+                    {% if error %}
+                    <p class="validation">{{ error }}</p>
+                    {% endif %}
+                    <a href="/form_login">Click here to Login!</a><br>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+         <!-- Update your JavaScript -->
+<script>
+    const formPopups = document.querySelectorAll(".form-popup");
+    const closeButtons = document.querySelectorAll(".close");
+
+    function showPopup(formId) {
+        formPopups.forEach(form => {
+            if (form.id === formId) {
+                form.classList.add("show");
+            } else {
+                form.classList.remove("show");
+            }
+        });
+    }
+
+    function hidePopup(formId) {
+        document.getElementById(formId).classList.remove("show");
+    }
+
+    document.querySelector(".open-login").addEventListener("click", function () {
+        showPopup('loginForm');
+    });
+
+    document.querySelector(".open-signup").addEventListener("click", function () {
+        showPopup('signupForm');
+    });
+
+    closeButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            formPopups.forEach(form => {
+                form.classList.remove("show");
+            });
+        });
+    });
+</script>
     </header>
 
     <main>

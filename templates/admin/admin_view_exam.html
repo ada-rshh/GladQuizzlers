@@ -1,4 +1,4 @@
-{% extends 'teacherbase.html' %}
+{% extends 'admin/adminbase.html' %}
 {% block content %}
 
 
@@ -44,7 +44,7 @@
         <td>{{t.question_number}}</td>
         <td>{{t.total_marks}}</td>
         
-        <td><a class="btn btn-danger btn-xs" href="{{ url_for('delete_exam_view', course_id=t.id) }}"><span class="glyphicon glyphicon-trash"></span></a></td>
+        <td><a class="btn btn-danger btn-xs" href="{{ url_for('admin_delete_exam_view', course_id=t['_id']) }}"><span class="glyphicon glyphicon-trash"></span></a></td>
       </tr>
       {% endfor %}
     </table>

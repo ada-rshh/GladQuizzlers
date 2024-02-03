@@ -117,3 +117,9 @@ def teacher_add_question_view():
 
     courses = quiz_collection.find()
     return render_template('teacher_add_question.html', form=form, courses=courses)
+
+
+# @app.route('/teacher_delete-exam/<string:course_id>')
+# def delete_exam_view(course_id):
+#     quiz_collection.delete_one({'_id': course_id})
+#     return redirect('/teacher_view-exam')

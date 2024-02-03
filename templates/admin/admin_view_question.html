@@ -1,4 +1,4 @@
-{% extends 'teacherbase.html' %}
+{% extends 'admin/adminbase.html' %}
 {% block content %}
 
 
@@ -43,8 +43,7 @@
         <td> {{c.course_name}}</td>
         <td>{{c.question_number}}</td>
         <td>{{c.total_marks}}</td>
-        <td><a class="btn btn-primary btn-xs" href="{{ url_for('see_question_view', course_id=c.id) }}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
-        
+        <td><a class="btn btn-primary btn-xs" href="{{ url_for('admin_see_question_view') }}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
       </tr>
       {% endfor %}
     </table>

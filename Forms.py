@@ -108,17 +108,14 @@ class CourseForm(FlaskForm):
     course_name = StringField('Course Name', validators=[DataRequired()])
     question_number = IntegerField('Question Number', validators=[DataRequired()])
     total_marks = IntegerField('Total Marks', validators=[DataRequired()])
-    
-    # Add a new field for selecting the course
-    course_id = SelectField('Select Course', coerce=str, validators=[DataRequired()])
+    course_id = HiddenField('Course ID')  # Add course_id as a hidden field
 
     def to_dict(self):
         return {
-            'id': str(self.id),
             'course_name': self.course_name.data,
             'question_number': self.question_number.data,
             'total_marks': self.total_marks.data,
-            'course_id': self.course_id.data,  # Include the selected course ID
+            'course_id': self.course_id.data,
         }
 
 class QuestionForm(FlaskForm):

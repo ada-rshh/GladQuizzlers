@@ -14,7 +14,7 @@
             <input type="password" name="password" class="input" placeholder="password" required><br>
             <h1 class="validation">{{ error }}</h1>
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-<!--            <a href="{{ url_for('admin_signup') }}" class="signup-link">Admin Sign Up</a>-->
+           <a href="{{ url_for('admin_signup') }}" class="signup-link">Admin Sign Up</a>
             <input type="submit" value="Login" class="submit" style="width: 6%;">
         </form>
     </div>

@@ -1,0 +1,51 @@
+{% extends 'admin/adminbase.html' %}
+{% block content %}
+
+
+<head>
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+  <style media="screen">
+    a:link {
+      text-decoration: none;
+    }
+
+    h6 {
+      text-align: center;
+    }
+
+    .row {
+      margin: 100px;
+    }
+  </style>
+</head>
+<br><br>
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h6 class="panel-title">Questions for Course: {{ course_name }}</h6>
+    </div>
+    <table class="table table-hover" id="dev-table">
+      <thead>
+        <tr>
+          <th>Question</th>
+          <th>Marks</th>
+          <th>Delete Question</th>
+        </tr>
+      </thead>
+      {% for question in questions %}
+        <tr>
+          <td>{{ question.question }}</td>
+          <td>{{ question.marks }}</td>
+          <td><a class="btn btn-primary btn-xs" href="{{ url_for('admin_remove_question_view', course_id=course_id) }}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+
+<br><br><br><br><br><br>
+{% endblock content %}

@@ -158,19 +158,19 @@ try:
 except Exception as e:
     print(e)
 
-#logging stuff
-logging.basicConfig(level=logging.DEBUG, filename="C:/Users/User/Downloads/Glad/example.log", filemode="w",
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S")
+# #logging stuff
+# logging.basicConfig(level=logging.DEBUG, filename="C:/Users/User/Downloads/Glad/example.log", filemode="w",
+#             format="%(asctime)s - %(levelname)s - %(message)s",
+#             datefmt="%Y-%m-%d %H:%M:%S")
 
-def log_action(message):
-    """Helper function to log actions."""
-    logger.info(message)
+# def log_action(message):
+#     """Helper function to log actions."""
+#     logger.info(message)
 
-logger = logging.getLogger(__name__)
-logger.info("test the custom logger")
+# logger = logging.getLogger(__name__)
+# logger.info("test the custom logger")
 
-#end of logging stuff   
+# #end of logging stuff   
 
 ###################       Security implementations       ###########################
 def login_required(f):
@@ -622,7 +622,7 @@ def compose_newsletter():
         flash('Newsletter content saved.')
         return redirect('/admin_home')
 
-    return render_template('compose_newsletter.html', compose_form=compose_form)
+    return render_template('admin/compose_newsletter.html', compose_form=compose_form)
 
 
 
@@ -1011,6 +1011,84 @@ def allowed_file(filename):
 #     except Exception as e:
 #         return jsonify({"message": str(e)}), 500
 
+####################### Admin Codes for quiz ###################################
+
+
+
+@app.route('/admin_dashboard')
+def admin_dashboard_view():
+    total_course = quiz_collection.count_documents({})
+    total_users = users_collection.count_documents({})
+
+    context = {
+        'total_course': total_course,
+        'total_users': total_users
+    }
+    return render_template('admin/admin_dashboard.html', **context)
+
+
+
+@app.route('/admin_view-exam')
+def admin_view_exam_view():
+    courses = quiz_collection.find()
+    return render_template('admin/admin_view_exam.html', courses=courses)
+
+
+
+@app.route('/admin_delete-exam/<string:course_id>')
+def admin_delete_exam_view(course_id):
+    try:
+        course_id_obj = ObjectId(course_id)  # Convert course_id to ObjectId
+        result = quiz_collection.delete_one({'_id': course_id_obj})
+
+        if result.deleted_count > 0:
+            # Exam successfully deleted
+            return redirect(url_for('admin_view_exam_view'))
+        else:
+            # Exam not found or not deleted
+            return render_template('error.html', message='Exam not found')
+    except Exception as e:
+        print(f"Error deleting exam: {e}")
+        return render_template('error.html', message='Invalid course ID')
+
+
+
+@app.route('/admin_view-question')
+def admin_view_question_view():
+    courses = quiz_collection.find()
+    return render_template('admin/admin_view_question.html', courses=courses)
+
+
+
+@app.route('/admin_see-question/<string:course_id>')
+def admin_see_question_view(course_id):
+    if ObjectId.is_valid(course_id):
+        print(f"Received course_id: {course_id}")
+        course = quiz_collection.find_one({'_id': ObjectId(course_id)})
+        print(f"Found course: {course}")
+        if course:
+            questions = course.get('questions', [])
+            course_name = course.get('course_name', 'Unknown Course')
+            return render_template('admin/admin_see_question.html', questions=questions, course_id=course_id, course_name=course_name)
+        else:
+            return render_template('error.html', message='Course not found')
+    else:
+        flash('Invalid course ID', 'error')
+        return redirect(url_for('admin_view_question_view'))
+    
+
+
+@app.route('/admin_remove-question/<string:course_id>/<string:question_id>')
+def admin_remove_question_view(course_id, question_id):
+    quiz_collection.update_one(
+        {'_id': ObjectId(course_id)},
+        {'$pull': {'questions': {'_id': ObjectId(question_id)}}}
+    )
+    return redirect(url_for('admin_view_question_view'))
+
+
+
+####################### Teacher Codes for quiz ###################################
 
 
 
@@ -1027,11 +1105,15 @@ def teacher_dashboard_view():
         # 'total_question': total_question,
         'total_users': total_users  # Change to total_users
     }
-    return render_template('teacher_dashboard.html', context=context)
+    return render_template('teacher/teacher_dashboard.html', context=context)
+
+
 
 @app.route('/teacher_exam', methods=['GET', 'POST'])
 def teacher_exam():
-    return render_template('teacher_exam.html')
+    return render_template('teacher/teacher_exam.html')
+
+
 
 @app.route('/teacher_add-exam', methods=['GET', 'POST'])
 def teacher_add_exam_view():
@@ -1051,21 +1133,40 @@ def teacher_add_exam_view():
         quiz_collection.insert_one(course_data)
         return redirect('/teacher_view-exam')
 
-    return render_template('teacher_add_exam.html', courseForm=courseForm)
+    return render_template('teacher/teacher_add_exam.html', courseForm=courseForm)
+
+
 
 @app.route('/teacher_view-exam')
 def teacher_view_exam_view():
     courses = quiz_collection.find()
-    return render_template('teacher_view_exam.html', courses=courses)
+    return render_template('teacher/teacher_view_exam.html', courses=courses)
+
+
 
 @app.route('/teacher_delete-exam/<string:course_id>')
 def delete_exam_view(course_id):
-    quiz_collection.delete_one({'_id': ObjectId(course_id)})
-    return redirect('/teacher_view-exam')
+    try:
+        course_id_obj = ObjectId(course_id)  # Convert course_id to ObjectId
+        result = quiz_collection.delete_one({'_id': course_id_obj})
+
+        if result.deleted_count > 0:
+            # Exam successfully deleted
+            return redirect(url_for('teacher_view_exam_view'))
+        else:
+            # Exam not found or not deleted
+            return render_template('error.html', message='Exam not found')
+    except Exception as e:
+        print(f"Error deleting exam: {e}")
+        return render_template('error.html', message='Invalid course ID')
+
+
 
 @app.route('/teacher_question', methods=['GET', 'POST'])
 def teacher_question():
-    return render_template('teacher_question.html')
+    return render_template('teacher/teacher_question.html')
+
+
 
 @app.route('/teacher_add-question', methods=['GET', 'POST'])
 def teacher_add_question_view():
@@ -1105,18 +1206,34 @@ def teacher_add_question_view():
     # Load the existing courses for the form
     courses = quiz_collection.find()
     
-    return render_template('teacher_add_question.html', question_form=question_form, course_form=course_form, courses=courses)
+    return render_template('teacher/teacher_add_question.html', question_form=question_form, course_form=course_form, courses=courses)
+
+
 
 @app.route('/teacher_view-question')
 def teacher_view_question_view():
     courses = quiz_collection.find()
-    return render_template('teacher_view_question.html', courses=courses)
+    return render_template('teacher/teacher_view_question.html', courses=courses)
+
+
 
 @app.route('/teacher_see-question/<string:course_id>')
 def see_question_view(course_id):
-    course = quiz_collection.find_one({'_id': ObjectId(course_id)})
-    questions = course.get('questions', [])
-    return render_template('see_question.html', questions=questions)
+    if ObjectId.is_valid(course_id):
+        print(f"Received course_id: {course_id}")
+        course = quiz_collection.find_one({'_id': ObjectId(course_id)})
+        print(f"Found course: {course}")
+        if course:
+            questions = course.get('questions', [])
+            course_name = course.get('course_name', 'Unknown Course')
+            return render_template('teacher/see_question.html', questions=questions, course_id=course_id, course_name=course_name)
+        else:
+            return render_template('error.html', message='Course not found')
+    else:
+        flash('Invalid course ID', 'error')
+        return redirect(url_for('teacher_view_question_view'))
+    
+
 
 @app.route('/teacher_remove-question/<string:course_id>/<string:question_id>')
 def remove_question_view(course_id, question_id):
@@ -1124,7 +1241,7 @@ def remove_question_view(course_id, question_id):
         {'_id': ObjectId(course_id)},
         {'$pull': {'questions': {'_id': ObjectId(question_id)}}}
     )
-    return redirect('/teacher_view-question')
+    return redirect(url_for('teacher_view_question_view'))
 
 
 
@@ -1306,9 +1423,9 @@ def admin_signup():
         existing_user = admin_collection.find_one({"$or": [{"username": username}]})
 
         if existing_user:
-            return render_template("admin_signup.html", error="Username or email already exists")
+            return render_template("admin/admin_signup.html", error="Username or email already exists")
         elif password != confirm_pw:
-            return render_template("admin_signup.html", error="Passwords do not match!")
+            return render_template("admin/admin_signup.html", error="Passwords do not match!")
 
         else:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -1317,7 +1434,7 @@ def admin_signup():
 
             return redirect(url_for('homeb4login'))
 
-    return render_template("admin_signup.html")
+    return render_template("admin/admin_signup.html")
 
 
 
@@ -1342,9 +1459,9 @@ def admin_login():
 
         else:
             error = "Invalid username or password. Please try again."
-            return render_template('adminlogin.html', error=error)
+            return render_template('admin/adminlogin.html', error=error)
 
-    return render_template('adminlogin.html', error='')
+    return render_template('admin/adminlogin.html', error='')
 
 
 
@@ -1357,7 +1474,7 @@ def admin_dashboard():
     else:
         redirect_url = url_for('admin_dashboard')
     admin_user = current_user
-    return render_template('adminhome.html', admin_username=session['admin_username'], admin_user=admin_user)
+    return render_template('admin/adminhome.html', admin_username=session['admin_username'], admin_user=admin_user)
 
 
 
