@@ -69,11 +69,7 @@ app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
 app.config['MAIL_DEFAULT_SENDER'] = os.environ['MAIL_DEFAULT_SENDER']
 # app.config['MONGO_URI'] = os.environ['DATABASE_URL']
-<<<<<<< HEAD
 app.config['MONGO_URI'] = "mongodb+srv://EnvAware:envaware777#@atlascluster.aej9sme.mongodb.net/?retryWrites=true&w=majority"
-=======
-app.config['MONGO_URI'] = "mongodb+srv://EnvAware:envaware777%23@atlascluster.aej9sme.mongodb.net/?retryWrites=true&w=majority"
->>>>>>> 0f720327510c5525fb35d459379cddb4d2b00e89
 app.jinja_env.filters['format_object_id'] = format_object_id
 csrf = CSRFProtect(app)
 
@@ -90,7 +86,7 @@ mail = Mail(app)
 client = MongoClient(app.config['MONGO_URI'])
 
 # main users #
-db = client["venv"]
+db = client["Glad"]
 users_collection = db["users"]
 posts_collection = db['posts']
 
