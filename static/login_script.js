@@ -98,8 +98,16 @@ function showPopup(formId) {
 
 // Function to hide the form popup
 function hidePopup(formId) {
-    document.getElementById(formId).classList.remove("show");
+    const formElement = document.getElementById(formId);
+
+    if (!formElement) {
+        console.error(`Element with ID '${formId}' not found`);
+        return;
+    }
+
+    formElement.classList.remove("show");
 }
+
 
 // Call showPopup function when the "LOGIN" button is clicked
 document.querySelector(".open-login").addEventListener("click", function () {
@@ -111,8 +119,18 @@ document.querySelector(".open-signup").addEventListener("click", function () {
     showPopup('signupForm');
 });
 
+document.querySelector(".open-teacherlogin").addEventListener("click", function () {
+    showPopup('teacherloginForm');
+});
+
+document.querySelector(".open-teachersignup").addEventListener("click", function () {
+    showPopup('teachersignupForm');
+});
+
 // Call hidePopup function when the close button is clicked
 close.addEventListener("click", function () {
     hidePopup('loginForm'); // Update with the correct form ID
     hidePopup('signupForm'); // Update with the correct form ID
+    hidePopup('teacherloginForm'); // Update with the correct form ID
+    hidePopup('teachersignupForm'); // Update with the correct form ID
 });

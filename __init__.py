@@ -89,6 +89,7 @@ client = MongoClient(app.config['MONGO_URI'])
 db = client["Glad"]
 users_collection = db["users"]
 posts_collection = db['posts']
+teacher_collection = db['teachers']
 
 # admin side #
 report_collection = db["reports"]
@@ -283,6 +284,48 @@ def login():
 
 
 
+@app.route('/teacher_login', methods=["GET", "POST"])
+def teacher_login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        csrf_token = request.form.get("csrf_token")
+        print("Received CSRF Token:", csrf_token)
+
+        # Retrieve the user document based on the username
+        teacher = teacher_collection.find_one({"username": username})
+
+        if teacher:
+            # Hash the user-provided password and compare it with the stored hashed password
+            hashed_password = teacher.get("password")
+            if bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+                email = teacher.get("email")
+                # Generate OTP and store it in the session
+                otp = ''.join(random.choices(string.digits, k=6))
+
+                # Send the OTP to the user's email
+                send_otp_email(email, otp)
+
+                session["username"] = username  # Store username in the session for future use
+                session["otp"] = otp  # Store the OTP in the session for verification
+                session["_csrf_token"] = csrf_token  # Store the CSRF token in the session
+
+                return redirect("teacher_verify_otp")
+            else:
+                return render_template("homeb4login.html", error="Invalid password")
+
+        else:
+            return render_template("homeb4login.html", error="Invalid username")
+
+        # Generate a new CSRF token and store it in the session
+    print("Before CSRF Token generation")
+    csrf_token = secrets.token_hex(32)
+    session["_csrf_token"] = csrf_token
+    print("After CSRF Token generation")
+    return render_template("teacher/teacher_login.html")
+
+
+
 def send_otp_email(recipient_email, otp):
     subject = 'OTP for Account Verification'
     body = f'Your OTP for account verification is: {otp}'
@@ -318,6 +361,29 @@ def verify_otp():
         if not stored_otp:
             return redirect("/")  # Redirect to login if no OTP is stored in the session
         return render_template("otp_verification.html")
+    
+
+
+@app.route('/teacher_verify_otp', methods=["GET", "POST"])  # Updated route to handle both GET and POST
+def teacher_verify_otp():
+    if request.method == "POST":
+        entered_otp = request.form.get("otp")
+        stored_otp = session.get("otp")
+        username = session.get("username")
+
+        if entered_otp == stored_otp:
+            session.pop("otp", None)
+            return redirect("/teacher_dashboard")
+
+        else:
+            return render_template("teacher/teacher_otp_verification.html", error="Invalid OTP", username=username, otp=stored_otp)
+
+    else:  # This part handles the GET request
+        stored_otp = session.get("otp")
+        if not stored_otp:
+            return redirect("/")  # Redirect to login if no OTP is stored in the session
+        return render_template("teacher/teacher_otp_verification.html")
+
 
 
 def validate_csrf_token(csrf_token):
@@ -469,6 +535,58 @@ def signup():
             send_otp_email(signup_email, otp)
 
             return render_template("otp_verification.html", info="OTP has been sent to your email.")
+
+
+
+@app.route('/teacher_signup', methods=["GET", "POST"])
+def teacher_signup():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        confirm_pw = request.form["confirm"]
+        signup_email = request.form["email"]
+
+        # Validate the email
+        try:
+            valid_email = validate_email(signup_email)
+            signup_email = valid_email.email
+        except EmailNotValidError:
+            return render_template("signup.html", error="Invalid email format", password=password, confirm=confirm_pw)
+
+        # Check email length
+        if len(signup_email) > 50:  # Adjust the maximum length as needed
+            return render_template("signup.html", error="Email address is too long", username=username)
+
+        existing_teacher = teacher_collection.find_one({"$or": [{"username": username}, {"email": signup_email}]})
+
+        if existing_teacher:
+            return render_template("signup.html", error="Username or email already exists", password=password, confirm=confirm_pw)
+        elif re.search(r'[!@#$%^&*(),.?":{}|<>]', username):
+            return render_template("signup.html", error="Username cannot contain special characters", email=signup_email)
+        elif len(password) <= 7:
+            return render_template("signup.html", error="Password too short!", username=username, email=signup_email)
+        elif len(password) >= 15:
+            return render_template("signup.html", error="Password too long", username=username, email=signup_email)
+        elif password != confirm_pw:
+            return render_template("signup.html", error="Passwords do not match!")
+
+        else:
+            # Hash and salt the password using bcrypt
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+            teacher = {"username": username, "password": hashed_password, "email": signup_email}
+            teacher_collection.insert_one(teacher)
+            otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+            # Save the OTP in the session
+            session["otp"] = otp
+
+            # Send the OTP to the email address
+            send_otp_email(signup_email, otp)
+
+            return render_template("otp_verification.html", info="OTP has been sent to your email.")
+    
+    return render_template("teacher/teacher_signup.html")
 
 
 
@@ -1105,7 +1223,8 @@ def teacher_dashboard_view():
         # 'total_question': total_question,
         'total_users': total_users  # Change to total_users
     }
-    return render_template('teacher/teacher_dashboard.html', context=context)
+    if "username" in session:
+        return render_template('teacher/teacher_dashboard.html', context=context, info=session["username"]) # Updated to pass info instead of username
 
 
 

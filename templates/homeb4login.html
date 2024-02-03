@@ -106,7 +106,7 @@
                         <p class="validation">{{ error }}</p>
                         {% endif %}
                         <a href="/forgot">Forgot Password?</a><br>
-                        <a href="/signup">Don't have an account? Sign up!</a><br>
+                        <a href="/teacher_login">Are you a Teacher? Click here to Login!</a><br>
                         <a href="/admin_login">Admin Login</a><br>
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn">Login</button>
@@ -152,6 +152,7 @@
                     <p class="validation">{{ error }}</p>
                     {% endif %}
                     <a href="/form_login">Click here to Login!</a><br>
+                    <a href="/teacher_signup">Want to be a Teacher? Sign up HERE!</a><br>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn">Sign Up</button>
                 </form>
