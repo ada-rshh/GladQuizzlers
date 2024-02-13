@@ -3303,3 +3303,29 @@
 13-Feb-24 23:21:00 - 127.0.0.1 - - [13/Feb/2024 23:21:00] "[33mGET /newhome.css HTTP/1.1[0m" 404 -
 13-Feb-24 23:21:00 - 127.0.0.1 - - [13/Feb/2024 23:21:00] "[36mGET /static/newhome.css HTTP/1.1[0m" 304 -
 13-Feb-24 23:21:00 - 127.0.0.1 - - [13/Feb/2024 23:21:00] "[36mGET /static/images/purple-anime-aesthetic-office-room-ub1yidzt99c07nfn.jpg HTTP/1.1[0m" 304 -
+14-Feb-24 00:18:44 - This is a debug message
+14-Feb-24 00:18:47 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.111:5000
+14-Feb-24 00:18:47 - [33mPress CTRL+C to quit[0m
+14-Feb-24 00:18:47 -  * Restarting with stat
+14-Feb-24 00:18:49 - This is a debug message
+14-Feb-24 00:18:49 -  * Debugger is active!
+14-Feb-24 00:18:49 -  * Debugger PIN: 546-489-574
+14-Feb-24 00:18:59 - 127.0.0.1 - - [14/Feb/2024 00:18:59] "GET / HTTP/1.1" 200 -
+14-Feb-24 00:18:59 - 127.0.0.1 - - [14/Feb/2024 00:18:59] "[33mGET /newhome.css HTTP/1.1[0m" 404 -
+14-Feb-24 00:18:59 - 127.0.0.1 - - [14/Feb/2024 00:18:59] "[36mGET /static/newhome.css HTTP/1.1[0m" 304 -
+14-Feb-24 00:18:59 - 127.0.0.1 - - [14/Feb/2024 00:18:59] "[36mGET /static/images/purple-anime-aesthetic-office-room-ub1yidzt99c07nfn.jpg HTTP/1.1[0m" 304 -
+14-Feb-24 00:52:39 - This is a debug message
+14-Feb-24 00:53:07 - This is a debug message
+14-Feb-24 00:53:08 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+14-Feb-24 00:53:08 - [33mPress CTRL+C to quit[0m
+14-Feb-24 00:53:09 - Starting new HTTPS connection (1): bin.equinox.io:443
+14-Feb-24 00:53:10 - https://bin.equinox.io:443 "GET /c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip HTTP/1.1" 200 14091962
+14-Feb-24 00:53:15 - Starting new HTTP connection (1): localhost:4040
+14-Feb-24 00:53:48 - 127.0.0.1 - - [14/Feb/2024 00:53:48] "GET / HTTP/1.1" 200 -
+14-Feb-24 00:53:48 - 127.0.0.1 - - [14/Feb/2024 00:53:48] "[33mGET /newhome.css HTTP/1.1[0m" 404 -
+14-Feb-24 00:53:48 - 127.0.0.1 - - [14/Feb/2024 00:53:48] "[36mGET /static/newhome.css HTTP/1.1[0m" 304 -
+14-Feb-24 00:53:48 - 127.0.0.1 - - [14/Feb/2024 00:53:48] "[36mGET /static/images/purple-anime-aesthetic-office-room-ub1yidzt99c07nfn.jpg HTTP/1.1[0m" 304 -
