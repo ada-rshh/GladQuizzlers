@@ -1796,7 +1796,7 @@ def loggingdebug():
     logging.debug(f"{username} tried to access logger debug")
     with open('logger.log', 'r') as log_file:
           for line in log_file:
-            if not "static" or "css"or "js"or "jpg"or "png"or "gif"or "pdf"or "txt"or "https" in line:
+            if not "static" or "css"or "js"or "jpg"or "png"or "gif"or "pdf"or "txt"or "https" or "static" or "GET" in line:
                 log_content = log_file.read()
 
     return render_template('loggingdebug.html',  log_content=log_content) 
