@@ -1840,7 +1840,7 @@ def check_role(username):
 if __name__ == '__main__':
     # schedule_newsletter()
     create_admin_collection()
-    app.run(debug=True)
+    app.run(debug=True,host='0.0.0.0')
 
 
 
