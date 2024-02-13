@@ -5,31 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c1768f80-413a-4641-b337-0535af33f3a6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/wildvine-master.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/wildvine-master.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/Forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/extras - adarsh.py" beforeDir="false" afterPath="$PROJECT_DIR$/extras - adarsh.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Glad" beforeDir="false" afterPath="$PROJECT_DIR$/Glad" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/editprofile.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/editprofile.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/admin_see_question.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/admin_see_question.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/admin_signup.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/admin_signup.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/admin_view_question.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/admin_view_question.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/adminbase.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/adminbase.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/admin/adminlogin.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/admin/adminlogin.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/contact.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/contact.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/editprofile.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/editprofile.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/feedback.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/feedback.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/forgot.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/forgot.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/homeb4login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/homeb4login.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/otp_verification.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/otp_verification.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/otp_verification_forgot.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/otp_verification_forgot.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/quiz.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/quiz.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/report.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/report.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/reset_password.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/reset_password.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/teacher/teacher_login.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/teacher/teacher_login.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/teacher/teacher_otp_verification.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/teacher/teacher_otp_verification.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/teacher/teacher_signup.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/teacher/teacher_signup.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,7 +25,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/user/Documents/GladTEST/Glad",
+    "last_opened_file_path": "C:/Users/user/Documents/Glad",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
