@@ -188,7 +188,12 @@ logging.debug("This is a debug message")
 singapore_timezone = pytz.timezone('Asia/Singapore')
 timestamp = datetime.now(singapore_timezone).strftime('%d-%b-%Y %H:%M:%S')
 
-
+# Add a StreamHandler to log messages to the console for debugging
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 ###################       Security implementations       ###########################
 def login_required(f):
@@ -268,6 +273,7 @@ def login():
         recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
         print("Received CSRF Token:", csrf_token)
         print("Received reCAPTCHA Token:", recaptcha_token)
+        logging.debug(f"{username} just logged in")
 
         # Verify reCAPTCHA token
         verify_response = requests.post(url=app.config['VERIFY_URL'], data={
@@ -330,6 +336,7 @@ def teacher_login():
         recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
         print("Received CSRF Token:", csrf_token)
         print("Received reCAPTCHA Token:", recaptcha_token)
+        logging.debug(f"{username}(teacher) has logged in")
 
         # Verify reCAPTCHA token
         verify_response = requests.post(url=app.config['VERIFY_URL'], data={
@@ -562,6 +569,7 @@ def signup():
         recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
         print("Received CSRF Token:", csrf_token)
         print("Received reCAPTCHA Token:", recaptcha_token)
+        logging.debug(f"{username}(user) has created an account")
 
         # Verify reCAPTCHA token
         verify_response = requests.post(url=app.config['VERIFY_URL'], data={
@@ -653,6 +661,7 @@ def teacher_signup():
         recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
         print("Received CSRF Token:", csrf_token)
         print("Received reCAPTCHA Token:", recaptcha_token)
+        logging.debug(f"{username}(teacher) has created an account")
 
         # Verify reCAPTCHA token
         verify_response = requests.post(url=app.config['VERIFY_URL'], data={
@@ -1769,34 +1778,28 @@ def admin_logout():
 
 
 
-@app.route('/logging')
+@app.route('/loggingadmin')
 @admin_login_required
-def logging():
+def loggingadmin():
     username = request.form.get('username')
-    logger.debug(f"{username} tried to access logger")
+    logging.debug(f"{username} tried to access logger")
     users = db.users.find()
     teachers = db.teachers.find()
     admins = db.admin.find()
-    return render_template('logging.html', users=users, teachers=teachers, admins=admins)
+    return render_template('loggingadmin.html', users=users, teachers=teachers, admins=admins)
+
 
 @app.route('/loggingdebug')
 def loggingdebug():
+
     username = request.form.get('username')
-    logger.debug(f"{username} tried to access logger")
+    logging.debug(f"{username} tried to access logger debug")
     with open('logger.log', 'r') as log_file:
-        log_content = log_file.read()
+          for line in log_file:
+            if not "static" or "css"or "js"or "jpg"or "png"or "gif"or "pdf"or "txt"or "https" in line:
+                log_content = log_file.read()
 
-    return render_template('loggingdebug.html',  log_content=log_content)
-
-@app.route('/loggingwarning')
-def loggingwarning():
-    username = request.form.get('username')
-    logger.debug(f"{username} tried to access logger")
-    with open('loggerwarning.log', 'r') as log_file:
-        log_content = log_file.read()
-
-    return render_template('loggingwarning.html',  log_content=log_content)
-
+    return render_template('loggingdebug.html',  log_content=log_content) 
 
 
 # Function to create the 'admin' collection and insert admin details

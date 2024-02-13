@@ -3,16 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-        <link rel="stylesheet" href=" {{url_for('static', filename = 'logging.css' )}}">
     <style>
-    /* Style for log content */
-    .log-box {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-    }
-    </style>
+          /* Style for log content */
+          .log-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+          }
+                  /* CSS styles for the table */
+                  table {
+                  width: 100%;
+                  border-collapse: collapse;
+              }
+      
+              th, td {
+                  border: 1px solid #000000;
+                  text-align: left;
+                  padding: 8px;
+              }
+      
+              /* CSS styles for the table rows (boxes for each account) */
+              .user-box {
+                  background-color: #f2f2f2;
+                  border-radius: 5px;
+                  margin-bottom: 10px;
+                  padding: 10px;
+              }
+              .teacher-box {
+                  background-color: #f2f2f2;
+                  border-radius: 5px;
+                  margin-bottom: 10px;
+                  padding: 10px;
+              }
+              .admin-box {
+                  background-color: #f2f2f2;
+                  border-radius: 5px;
+                  margin-bottom: 10px;
+                  padding: 10px;
+              }
+      
+      
+      /* Navbar styles */
+      nav {
+        background-color: #333;
+      }
+      nav ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      
+      nav ul li {
+        float: left;
+      }
+      
+      nav ul li a {
+        display: block;
+        color: white;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+      }
+      
+      nav ul li a:hover {
+        background-color: #111;
+      }
+        /* Content styles */
+        .content {
+        padding: 20px;
+      }
+          </style>
 </head>
 <body>
     <nav>
