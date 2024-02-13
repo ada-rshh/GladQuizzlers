@@ -1,0 +1,70 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin-top: 200px;
+}
+.form-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 800px;
+}
+
+.question {
+    margin-bottom: 20px;
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.option {
+    display: block;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.option input {
+    position: absolute;
+    opacity: 0;
+}
+
+.checkmark {
+    display: block;
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.option input:checked + .checkmark {
+    background-color: #9954c2;
+    color: white;
+}
+
+.quiz-submit {
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    height: 35px;
+    outline: none;
+    width: 10%;
+    background: rgb(95, 91, 91);
+    cursor: pointer;
+    transition: .3s;
+    color: #fff;
+}
+
+.quiz-submit:hover {
+    box-shadow: 1px 5px 7px 1px rgba(0, 0, 0, 0.2);
+}
+
+p.validation{
+    text-align: center;
+    color: red;
+   }

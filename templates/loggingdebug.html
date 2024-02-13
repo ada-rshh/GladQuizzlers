@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+        <link rel="stylesheet" href=" {{url_for('static', filename = 'logging.css' )}}">
+    <style>
+    /* Style for log content */
+    .log-box {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    </style>
+</head>
+<body>
+    <nav>
+      <ul>
+        <li><a href="/admin_dashboard">Home</a></li>
+        <li><a href="/logging">Home</a></li>
+        <li><a href="/loggingdebug">Debug</a></li>
+        <li><a href="/loggingwarning">Warning</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+
+    <h1>Logger Debug</h1>
+
+    <pre>{{ log_content }}</pre>
+
+
+
+</body>
+</html>

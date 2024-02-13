@@ -21,6 +21,25 @@
     }
   </style>
 </head>
+
+
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="container">
+      {% for category, message in messages %}
+        <div class="alert alert-dismissible alert-{{ category }}">
+          <button type="button" class="close" data-dismiss="alert">×</button>
+          <ul>
+            <li>{{ message }}</li>
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
 <br><br>
 <div class="container">
   <div class="panel panel-primary">
@@ -39,7 +58,7 @@
         <tr>
           <td>{{ question.question }}</td>
           <td>{{ question.marks }}</td>
-          <td><a class="btn btn-primary btn-xs" href="{{ url_for('admin_remove_question_view', course_id=course_id) }}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
+          <td><a class="btn btn-primary btn-xs" href="{{ url_for('admin_remove_question_view', course_id=course_id, question_id=question._id) }}"><span class="glyphicon glyphicon-trash"></span></a></td>
         </tr>
       {% endfor %}
     </table>

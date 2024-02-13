@@ -2,27 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>login</title>
-    <link href=" {{url_for('static', filename = 'newlogin.css' )}}" rel="stylesheet">
-    <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@300;400;500;700&family=Oswald:wght@600&display=swap"
-    rel="stylesheet">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href=" {{url_for('static', filename = 'newlogin.css' )}}">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <title>Login NOW!</title>
     <script src="https://www.google.com/recaptcha/api.js"></script>
     <script>
         function onSubmit(token) {
-          document.getElementById("teacher-login-form").submit();
+          document.getElementById("login-form").submit();
         }
       </script>
-
-<body>
 </head>
 <body>
     <div class="top-header">
-        <header>Teacher Login</header>
+        <header>Login</header>
     </div>
-    <form action="/teacher_login" method="POST" id="teacher-login-form">
+    <form action="/form_login" method="POST" id="login-form">
         <div class="input-field">
             <input type="text" name="username" class="input" placeholder="Username" required>
             <i class="bx bx-user"></i>
@@ -30,6 +26,11 @@
         <div class="input-field">
             <input type="password" name="password" class="input" placeholder="Password" required>
             <i class="bx bx-lock-alt"></i>
+        </div>
+        <div class="right">
+            <label><a href="/forgot">Forgot Password?</a></label><br>
+            <label><a href="/teacher_login">Are you a Teacher? Click here to Login!</a></label><br>
+            <label><a href="/admin_login">Admin Login</a></label>
         </div>
         </div>
         <p class="validation">{{ error }}</p>

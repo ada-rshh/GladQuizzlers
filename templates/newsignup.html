@@ -2,26 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>signup</title>
-    <link href=" {{url_for('static', filename = 'newlogin.css' )}}" rel="stylesheet">
-    <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@300;400;500;700&family=Oswald:wght@600&display=swap"
-    rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link rel="stylesheet" href=" {{url_for('static', filename = 'newlogin.css' )}}">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Signup NOW!</title>
     <script src="https://www.google.com/recaptcha/api.js"></script>
     <script>
         function onSubmit(token) {
-          document.getElementById("teacher-signup-form").submit();
+          document.getElementById("signup-form").submit();
         }
       </script>
-
 </head>
-<body>
+<body>  
     <div class="top-header">
-        <header>Teacher Signup</header>
+        <header>Signup</header>
     </div>
-    <form action="/teacher_signup" method="post" class="form-container" id="teacher-signup-form">
+    <form action="/form_signup" method="post" class="form-container" id="signup-form">
         <div class="input-field">
             <input type="email" placeholder="Email" name="email" required class="input">
             <i class="bx bx-mail-send"></i>
@@ -38,12 +33,17 @@
             <input type="password" placeholder="Confirm Password" name="confirm" required class="input">
             <i class="bx bx-lock-alt"></i>
         </div>
+        <div class="news">
+            <label for="subscribe">Subscribe to Newsletter:</label>
+            <input type="checkbox" name="subscribe" id="subscribe" checked>
+        </div><br>
+        <div class="right">
+            <label><a href="/teacher_login">Are you a Teacher? Click here to Login!</a></label><br>
+            <label><a href="/teacher_signup">Want to be a Teacher? Sign up HERE!</a></label>
+        </div>
         <p class="validation">{{ error }}</p>
         <button type="submit" class="g-recaptcha submit" data-sitekey="{{ site_key }}" data-callback='onSubmit' data-action='submit'>Signup</button>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     </form>
-    
 </body>
 </html>
-
-

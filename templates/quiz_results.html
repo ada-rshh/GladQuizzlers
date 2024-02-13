@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - www.codingnepalweb.com -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href=" {{url_for('static', filename = 'quiz.css' )}}">
+    <!-- Google Fonts Links For Icon -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+    <!-- font awesome cdn link  -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+   <style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .quiz-box {
+        width: 800px;
+        padding: 20px;
+        border: 2px solid #000;
+        border-radius: 10px;
+        background-color: #f0f0f0;
+    }
+    .wrong-answer {
+        color: red;
+    }
+    .correct-answer {
+        color: green;
+    }
+</style>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <a class="logo" href="/home">Glad<span>.</span></a>
+        <ul class="menu-links">
+          <span id="close-menu-btn" class="material-symbols-outlined">close</span>
+          <li><a href="/home">Home</a></li>
+          <li><a href="/editprofile">Profile</a></li>
+          <li><a href="/quiz">Quizzes</a></li>
+          <li><a href="/feedback">Feedback</a></li>
+          <li><a href="/contact">Contact us</a></li>
+        </ul>
+        <div class="logout">
+        <a href="{{url_for('logout')}}"><button>Logout</button></a>
+        </div>
+        <span id="hamburger-btn" class="material-symbols-outlined">menu</span>
+      </nav>
+    </header>
+
+    <section class="hero-section">
+        <div class="top-header">
+            <div class="quiz-box">
+                <h1>Quiz Results</h1>
+                <h2>{{ quiz.course_name }}</h2>
+                <h3>Review your quiz:</h3>
+                <ul>
+                    {% for question_id, user_answer in wrong_answers.items() %}
+                    <li>
+                        {% for question in quiz.questions %}
+                            {% if str(question._id) == question_id %}
+                                <p>Question: {{ question.question }}</p>
+                                <p>Your Answer: <span class="wrong-answer">{{ user_answer }} - {{ question[user_answer] }}</span></p>
+                                <p>Correct Answer: <span class="correct-answer">{{ question.answer }}</span></p>
+                            {% endif %}
+                        {% endfor %}
+                    </li>
+                    {% endfor %}
+                    {% if wrong_answers|length == 0 %}
+                        <li><p>Well done, you got everything correct!</p></li>
+                    {% endif %}
+                </ul>
+            </div>
+           </div>  
+         </section>
+    </section>
+
+    <script>
+      const header = document.querySelector("header");
+      const hamburgerBtn = document.querySelector("#hamburger-btn");
+      const closeMenuBtn = document.querySelector("#close-menu-btn");
+
+      // Toggle mobile menu on hamburger button click
+      hamburgerBtn.addEventListener("click", () => header.classList.toggle("show-mobile-menu"));
+
+      // Close mobile menu on close button click
+      closeMenuBtn.addEventListener("click", () => hamburgerBtn.click());
+    </script>
+  </body>
+</html>

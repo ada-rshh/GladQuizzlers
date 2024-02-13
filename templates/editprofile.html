@@ -1,164 +1,145 @@
 <!DOCTYPE html>
+<!-- Coding By CodingNepal - www.codingnepalweb.com -->
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <link rel="shortcut icon" href="./favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href=" {{url_for('static', filename = 'dropdown.css' )}}">
-    <link href=" {{url_for('static', filename = 'editprofile.css' )}}" rel="stylesheet">
-    <link href=" {{url_for('static', filename = 'profilepic.css' )}}" rel="stylesheet">
-    <script src="{{url_for('static', filename='profilepic.js')}}"></script>
-    <link href=" {{url_for('static', filename = 'login.css' )}}" rel="stylesheet">
-    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  	<link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@300;400;500;700&family=Oswald:wght@600&display=swap"
-    rel="stylesheet">
-</head>
-<body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href=" {{url_for('static', filename = 'editprofile.css' )}}">
+    <!-- Google Fonts Links For Icon -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  </head>
+  <body>
+    <header>
+      <nav class="navbar">
+        <a class="logo" href="/home">Glad<span>.</span></a>
+        <ul class="menu-links">
+          <span id="close-menu-btn" class="material-symbols-outlined">close</span>
+          <li><a href="/home">Home</a></li>
+          <li><a href="/editprofile">Profile</a></li>
+          <li><a href="/quiz">Quizzes</a></li>
+          <li><a href="/feedback">Feedback</a></li>
+          <li><a href="/contact">Contact us</a></li>
+        </ul>
+        <div class="logout">
+        <a href="{{url_for('logout')}}"><button>Logout</button></a>
+        </div>
+        <span id="hamburger-btn" class="material-symbols-outlined">menu</span>
+      </nav>
+    </header>
 
-<!--
-- #HEADER
--->
+    <section class="hero-section">
+      <div class="overlay"></div>
+      <div id="mySidenav" class="sidenav">
 
-<header class="header" data-header>
-<div class="container">
+        
+        <a href="/logout">logout</a>
+        <a href="/deleteacc">delete account</a>
+      </div>
+        <div class="top-header">
+          <header1>Edit Profile</header1>
+        </div>
+          <form action="/edit_profile" method="post" enctype="multipart/form-data" id="edit-profile-form">
 
-  <h1>
-    <a href="/home" class="logo">Wildvine</a>
-  </h1>
-
-  <select name="language" class="lang-switch">
-
-    <option value="english">English</option>
-    <option value="french">French</option>
-    <option value="spanish">Spanish</option>
-
-  </select>
-
-  <button class="nav-open-btn" aria-label="Open Menu" data-nav-open-btn>
-    <ion-icon name="menu-outline"></ion-icon>
-  </button>
-
-  <nav class="navbar" data-navbar>
-
-    <button class="nav-close-btn" aria-label="Close Menu" data-nav-close-btn>
-      <ion-icon name="close-outline"></ion-icon>
-    </button>
-
-    <a href="/home" class="logo">Wildvine</a>
-
-    <ul class="navbar-list">
-
-      <li>
-        <a href="/home" class="navbar-link" data-nav-link>
-          <span>Home</span>
-
-          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-        </a>
-      </li>
-
-      <li>
-        <a href="/forum" class="navbar-link" data-nav-link>
-          <span>Feed</span>
-
-          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-        </a>
-      </li>
-
-      <li>
-        <a href="/comment" class="navbar-link" data-nav-link>
-          <span>Comment</span>
-
-          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-        </a>
-      </li>
-
-      <li>
-        <a href="/feedback" class="navbar-link" data-nav-link>
-          <span>Feedback</span>
-
-          <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-        </a>
-      </li>
-
-    </ul>
-
-  </nav>
-  <form>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  </form>
-
-      <div class="header-action">
-        <a href="/add_post" class="button search-btn" aria-label="Add Post">
-          <i class="fa-solid fa-arrow-up-from-bracket"></i>
-        </a>
+            <div class="input-field">
+                <input type="text" name="old_username" class="input" placeholder="old username">
+            </div>
+            <div class="input-field">
+                <input type="text" name="new_username" class="input" placeholder="new username">
+            </div>
+            <div class="input-field">
+                <input type="password" name="new_password" class="input" placeholder="password">
+            </div>
+            <div class="input-field">
+                <input type="password" name="confirm" class="input" placeholder="confirm password">
+            </div>
+            <h1 class="validation">{{ error }}</h1>
+            <button type="submit" class="submit">Save</button>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          </form>
         </div>
 
-<!--      <div class="h-icons">-->
-<!--			<a href="#"><i class="bx bx-user-circle" class="account" style="font-size: 1.73em;" onclick="toggleMenu()"></i></a>-->
-<!--			<div class="sub-menu-wrap" id="subMenu">-->
-<!--				<div class="sub-menu">-->
-<!--					<div class="user-info">-->
-<!--                        <h2>{{info}}</h2>  &lt;!&ndash; Updated to use {{info}} instead of {{username}} &ndash;&gt;-->
-<!--                    </div>-->
-<!--					<hr>-->
-<!--					<a href="/editprofile" class="sub-menu-link">-->
-<!--						<i class='bx bxs-edit-alt'></i>-->
-<!--						<p>edit profile</p>-->
-<!--						<span>></span>-->
-<!--					</a>-->
-<!--					<a href="/logout" class="sub-menu-link">-->
-<!--						<i class='bx bx-log-out' ></i>-->
-<!--						<p>logout</p>-->
-<!--						<span>></span>-->
-<!--					</a>-->
-<!--					<a href="/deletepage" class="sub-menu-link">-->
-<!--						<i class='bx bx-trash'></i>-->
-<!--						<p>delete account</p>-->
-<!--						<span>></span>-->
-<!--					</a>-->
-<!--				</div>-->
-<!--			</div>-->
-<!--		</div>-->
-<!--        <script>-->
-<!--		let subMenu = document.getElementById("subMenu");-->
+        <div class="pfp">
+          <h2>Add your profile picture</h2>
+          <img src="{% if profile_picture_url %}{{ profile_picture_url }}{% endif %}" class="profile_image" alt="Profile Picture">
+          <form action="{{ url_for('edit_pfp') }}" id="pfp-form" class="pfp-form" method="post" enctype="multipart/form-data">
+              <label for="photo">Photo:</label>
+              <input type="file" id="photo" name="photo" class="form-control-file" accept="image/*" required><br><br>
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="submit" value="Upload">
+          </form>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+              {{ message }}
+          </div>
+          {% endfor %}
+          {% endif %}
+          {% endwith %}
+      </div>
+  </section>
+    <script>
+      const header = document.querySelector("header");
+      const hamburgerBtn = document.querySelector("#hamburger-btn");
+      const closeMenuBtn = document.querySelector("#close-menu-btn");
 
-<!--		function toggleMenu(){-->
-<!--			subMenu.classList.toggle("open-menu");-->
-<!--		}-->
-<!--	</script>-->
+      // Toggle mobile menu on hamburger button click
+      hamburgerBtn.addEventListener("click", () => header.classList.toggle("show-mobile-menu"));
 
-    </div>
-  </header>
+      // Close mobile menu on close button click
+      closeMenuBtn.addEventListener("click", () => hamburgerBtn.click());
+    </script>
 
 
-    <div id="mySidenav" class="sidenav">
-
-          <a href="/editprofile">edit profile</a>
-          <a href="/logout">logout</a>
-          <a href="/deleteacc">delete account</a>
-    </div>
-    <div id="main">
-            <form action="/edit_profile" method="post" enctype="multipart/form-data">
-                <br><br><br>
-            <div class="fieldiv">
-                <input type="text" name="old_username" class="epinput" placeholder="old username" ><br>
-                <input type="text" name="new_username" class="epinput" placeholder="new username" ><br>
-<!--                <textarea name="bio" class="epinput" placeholder="Bio"></textarea><br>-->
-<!--                <input type="password" name="old_password" class="epinput" placeholder="existing password">-->
-                <input type="password" name="new_password" class="epinput" placeholder="password"><br>
-                <input type="password" name="confirm" class="epinput" placeholder="confirm password"><br>
-                <h1 class="validation">{{error}}</h1>
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="submit" value="Save" class="epsubmit">
-            </div>
-
-        </form>
-    </div>
-
-
-</body>
+  <!-- JavaScript to handle profile picture upload -->
+<script>
+  const editProfileForm = document.getElementById('pfp-form'); // Assuming the form ID is pfp-form
+  
+  editProfileForm.addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission
+  
+    // Create a FormData object to send the image data
+    const formData = new FormData(this);
+  
+    // Add CSRF token (if applicable)
+    formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+  
+    // Make AJAX request to upload the image
+    fetch(this.action, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update the profile picture URL in the session (if server-side updates session)
+        if (data.profile_picture_url) {
+          sessionStorage.setItem('profile_picture_url', data.profile_picture_url);
+        }
+  
+        // Update the profile picture image source on the page
+        const profileImage = document.querySelector('.profile_image');
+        if (profileImage) {
+          profileImage.src = data.profile_picture_url;
+        } else {
+          // Handle case where image element doesn't exist yet
+          // (you might need to dynamically create it based on data.success)
+        }
+  
+        flash("Profile picture uploaded successfully!", "success"); // Assuming you have a flash function
+      } else {
+        // Handle upload errors from server response
+        flash(data.error, "error");
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      flash("An error occurred uploading the image.", "error");
+    });
+  });
+</script>
+    
+  </body>
 </html>

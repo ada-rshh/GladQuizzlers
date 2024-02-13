@@ -1,0 +1,68 @@
+{% extends 'admin/adminbase.html' %}
+{% block content %}
+
+
+<head>
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+  <style media="screen">
+    a:link {
+      text-decoration: none;
+    }
+
+    h6 {
+      text-align: center;
+    }
+
+    .row {
+      margin: 100px;
+    }
+
+    .feedback-image {
+      max-width: 100px; /* Adjust the maximum width as needed */
+      max-height: 100px; /* Adjust the maximum height as needed */
+    }
+  </style>
+</head>
+<br><br>
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h6 class="panel-title">Feedback</h6>
+    </div>
+    <table class="table table-hover" id="dev-table">
+            <thead>
+              <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Type of feedback</th>
+                <th>Remarks</th>
+                <th>Screenshot</th> <!-- Add a new table header for the screenshot -->
+              </tr>
+            </thead>
+            <tbody>
+              {% for feedback in feedback_data %}
+                <tr>
+                  <td>{{ feedback.first_name }}</td>
+                  <td>{{ feedback.last_name }}</td>
+                  <td>{{ feedback.email }}</td>
+                  <td>{{ feedback.title }}</td>
+                  <td>{{ feedback.remarks }}</td>
+                  <td>
+                    {% if feedback.screenshot %}
+                      <img src="{{ url_for('get_screenshot', filename=feedback.screenshot) }}" class="feedback-image">
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </div>
+    </table>
+  </div>
+</div>
+
+<br><br><br><br><br><br>
+{% endblock content %}

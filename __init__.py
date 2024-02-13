@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask import session
-from flask import Flask, render_template, request, redirect, url_for, flash, abort, g
+from flask import Flask, render_template, request, redirect, url_for, flash, abort, g, send_file
 from pymongo import MongoClient
 import pymongo
 from Forms import FeedbackForm, ReportForm, ComposeNewsletterForm, CommentForm, EditForm, Report_c_Form, CourseForm, QuestionForm, ResultForm
@@ -49,12 +49,20 @@ import bcrypt as bcrypt
 
 from bson import ObjectId
 from datetime import datetime
-import datetime
 
 import io
 import tempfile
 
 import logging
+
+import requests
+
+import time
+
+import logging
+from requests_html import HTMLSession
+
+import pytz
 
 # load env #
 load_dotenv()
@@ -62,12 +70,17 @@ load_dotenv()
 #########################       start of application        ######################
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+app.config['SITE_KEY'] = os.environ['SITE_KEY']
+app.config['RE_SECRET_KEY'] = os.environ['RE_SECRET_KEY']
+app.config['VERIFY_URL'] = os.environ['VERIFY_URL']
 app.config['MAIL_SERVER'] = os.environ['MAIL_SERVER']
 app.config['MAIL_PORT'] = int(os.environ['MAIL_PORT'])
 app.config['MAIL_USE_TLS'] = os.environ['MAIL_USE_TLS'].lower() == 'true'
 app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
 app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
 app.config['MAIL_DEFAULT_SENDER'] = os.environ['MAIL_DEFAULT_SENDER']
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
 # app.config['MONGO_URI'] = os.environ['DATABASE_URL']
 app.config['MONGO_URI'] = "mongodb+srv://EnvAware:envaware777#@atlascluster.aej9sme.mongodb.net/?retryWrites=true&w=majority"
 app.jinja_env.filters['format_object_id'] = format_object_id
@@ -88,7 +101,7 @@ client = MongoClient(app.config['MONGO_URI'])
 # main users #
 db = client["Glad"]
 users_collection = db["users"]
-posts_collection = db['posts']
+pfp_collection = db['pfp']
 teacher_collection = db['teachers']
 
 # admin side #
@@ -159,26 +172,30 @@ try:
 except Exception as e:
     print(e)
 
-# #logging stuff
-# logging.basicConfig(level=logging.DEBUG, filename="C:/Users/User/Downloads/Glad/example.log", filemode="w",
-#             format="%(asctime)s - %(levelname)s - %(message)s",
-#             datefmt="%Y-%m-%d %H:%M:%S")
+#logging stuff
+# Create a logger object
+logger = logging.getLogger()
 
-# def log_action(message):
-#     """Helper function to log actions."""
-#     logger.info(message)
+# Set logging level to DEBUG
+logger.setLevel(logging.DEBUG)
 
-# logger = logging.getLogger(__name__)
-# logger.info("test the custom logger")
+s = HTMLSession()
+today = datetime.today()
+date_save = today.strftime("%Y-%m-%d")
+logging.basicConfig(filename="logger.log", level=logging.DEBUG,
+                        format="%(asctime)s - %(message)s",datefmt="%d-%b-%y %H:%M:%S")
+logging.debug("This is a debug message")
+singapore_timezone = pytz.timezone('Asia/Singapore')
+timestamp = datetime.now(singapore_timezone).strftime('%d-%b-%Y %H:%M:%S')
 
-# #end of logging stuff   
+
 
 ###################       Security implementations       ###########################
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if "username" not in session:
-            return redirect("/")
+            return redirect("login")
 
         return f(*args, **kwargs)
 
@@ -224,9 +241,9 @@ def admin_login_required(func):
 
 
 ###################       unlogged user       ######################
-@app.route('/')
+@app.route('/', methods=['GET'])
 def homeb4login():
-    return render_template('homeb4login.html')
+    return render_template('newhomeb4login.html', site_key=app.config['SITE_KEY'])
 
 @app.route('/contactb4login')
 def contactb4login():
@@ -234,7 +251,7 @@ def contactb4login():
 
 @app.route('/index2')
 def index2():
-    return render_template('homeb4login.html')
+    return render_template('newhomeb4login.html')
 
 
 @app.route('/contact')
@@ -248,39 +265,59 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         csrf_token = request.form.get("csrf_token")
+        recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
         print("Received CSRF Token:", csrf_token)
+        print("Received reCAPTCHA Token:", recaptcha_token)
 
-        # Retrieve the user document based on the username
-        user = users_collection.find_one({"username": username})
+        # Verify reCAPTCHA token
+        verify_response = requests.post(url=app.config['VERIFY_URL'], data={
+            "secret": app.config['RE_SECRET_KEY'],
+            "response": recaptcha_token
+        }).json()
 
-        if user:
-            # Hash the user-provided password and compare it with the stored hashed password
-            hashed_password = user.get("password")
-            if bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+        if verify_response["success"]:
+            # reCAPTCHA verification successful
+            print("reCAPTCHA verification successful")
+
+            # Retrieve the user document based on the username
+            user = users_collection.find_one({"username": username})
+            
+
+            if user:
                 email = user.get("email")
-                # Generate OTP and store it in the session
-                otp = ''.join(random.choices(string.digits, k=6))
+                print("Received username:", username)
+                print("Received email:", email)
 
-                # Send the OTP to the user's email
-                send_otp_email(email, otp)
+                # Hash the user-provided password and compare it with the stored hashed password
+                hashed_password = user.get("password")
+                if bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+                    email = user.get("email")
+                    # Generate OTP and store it in the session
+                    otp = ''.join(random.choices(string.digits, k=6))
 
-                session["username"] = username  # Store username in the session for future use
-                session["otp"] = otp  # Store the OTP in the session for verification
-                session["_csrf_token"] = csrf_token  # Store the CSRF token in the session
+                    # Send the OTP to the user's email
+                    send_otp_email(email, otp)
 
-                return redirect("verify_otp")
+                    session["username"] = username  # Store username in the session for future use
+                    session["otp"] = otp  # Store the OTP in the session for verification
+                    session["_csrf_token"] = csrf_token  # Store the CSRF token in the session
+
+                    return redirect("verify_otp")
+                else:
+                    return render_template("newhomeb4login.html", error="Invalid password")
             else:
-                return render_template("homeb4login.html", error="Invalid password")
-
+                return render_template("newhomeb4login.html", error="Invalid username")
         else:
-            return render_template("homeb4login.html", error="Invalid username")
+            # reCAPTCHA verification failed
+            print("reCAPTCHA verification failed")
+            return render_template("newhomeb4login.html", error="reCAPTCHA verification failed")
 
         # Generate a new CSRF token and store it in the session
     print("Before CSRF Token generation")
     csrf_token = secrets.token_hex(32)
     session["_csrf_token"] = csrf_token
     print("After CSRF Token generation")
-    return render_template("homeb4login.html")
+    return render_template("newhomeb4login.html", site_key=app.config['SITE_KEY'])
 
 
 
@@ -290,39 +327,59 @@ def teacher_login():
         username = request.form["username"]
         password = request.form["password"]
         csrf_token = request.form.get("csrf_token")
+        recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
         print("Received CSRF Token:", csrf_token)
+        print("Received reCAPTCHA Token:", recaptcha_token)
 
-        # Retrieve the user document based on the username
-        teacher = teacher_collection.find_one({"username": username})
+        # Verify reCAPTCHA token
+        verify_response = requests.post(url=app.config['VERIFY_URL'], data={
+            "secret": app.config['RE_SECRET_KEY'],
+            "response": recaptcha_token
+        }).json()
 
-        if teacher:
-            # Hash the user-provided password and compare it with the stored hashed password
-            hashed_password = teacher.get("password")
-            if bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+        if verify_response["success"]:
+            # reCAPTCHA verification successful
+            print("reCAPTCHA verification successful")
+
+            # Your existing authentication logic here...
+            # Retrieve the user document based on the username
+            teacher = teacher_collection.find_one({"username": username})
+
+            if teacher:
                 email = teacher.get("email")
-                # Generate OTP and store it in the session
-                otp = ''.join(random.choices(string.digits, k=6))
+                print("Received username:", username)
+                print("Received email:", email)
 
-                # Send the OTP to the user's email
-                send_otp_email(email, otp)
+                # Hash the user-provided password and compare it with the stored hashed password
+                hashed_password = teacher.get("password")
+                if bcrypt.checkpw(password.encode('utf-8'), hashed_password):
+                    email = teacher.get("email")
+                    # Generate OTP and store it in the session
+                    otp = ''.join(random.choices(string.digits, k=6))
 
-                session["username"] = username  # Store username in the session for future use
-                session["otp"] = otp  # Store the OTP in the session for verification
-                session["_csrf_token"] = csrf_token  # Store the CSRF token in the session
+                    # Send the OTP to the user's email
+                    send_otp_email(email, otp)
 
-                return redirect("teacher_verify_otp")
+                    session["username"] = username  # Store username in the session for future use
+                    session["otp"] = otp  # Store the OTP in the session for verification
+                    session["_csrf_token"] = csrf_token  # Store the CSRF token in the session
+
+                    return redirect("teacher_verify_otp")
+                else:
+                    return render_template("newhomeb4login.html", error="Invalid password")
             else:
-                return render_template("homeb4login.html", error="Invalid password")
-
+                return render_template("newhomeb4login.html", error="Invalid username")
         else:
-            return render_template("homeb4login.html", error="Invalid username")
+            # reCAPTCHA verification failed
+            print("reCAPTCHA verification failed")
+            return render_template("newhomeb4login.html", error="reCAPTCHA verification failed")
 
         # Generate a new CSRF token and store it in the session
     print("Before CSRF Token generation")
     csrf_token = secrets.token_hex(32)
     session["_csrf_token"] = csrf_token
     print("After CSRF Token generation")
-    return render_template("teacher/teacher_login.html")
+    return render_template("teacher/teacher_login.html", site_key=app.config['SITE_KEY'])
 
 
 
@@ -481,9 +538,15 @@ def reset_password():
 
 
 
+@app.route('/login')
+def loginpage():
+    return render_template('newlogin.html', site_key=app.config['SITE_KEY'])
+
+
+
 @app.route('/signup')
 def signuppage():
-    return render_template('signup.html')
+    return render_template('newsignup.html', site_key=app.config['SITE_KEY'])
 
 
 
@@ -495,46 +558,87 @@ def signup():
         confirm_pw = request.form["confirm"]
         signup_email = request.form["email"]
         subscribe = request.form.get("subscribe")
+        csrf_token = request.form.get("csrf_token")
+        recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
+        print("Received CSRF Token:", csrf_token)
+        print("Received reCAPTCHA Token:", recaptcha_token)
 
-        # Validate the email
-        try:
-            valid_email = validate_email(signup_email)
-            signup_email = valid_email.email
-        except EmailNotValidError:
-            return render_template("signup.html", error="Invalid email format", password=password, confirm=confirm_pw)
+        # Verify reCAPTCHA token
+        verify_response = requests.post(url=app.config['VERIFY_URL'], data={
+            "secret": app.config['RE_SECRET_KEY'],
+            "response": recaptcha_token
+        }).json()
 
-        # Check email length
-        if len(signup_email) > 50:  # Adjust the maximum length as needed
-            return render_template("signup.html", error="Email address is too long", username=username)
+        if verify_response["success"]:
+            # reCAPTCHA verification successful
+            print("reCAPTCHA verification successful")
 
-        existing_user = users_collection.find_one({"$or": [{"username": username}, {"email": signup_email}]})
+            # Validate the email
+            try:
+                valid_email = validate_email(signup_email)
+                signup_email = valid_email.email
+            except EmailNotValidError:
+                return render_template("newsignup.html", error="Invalid email format", password=password, confirm=confirm_pw)
 
-        if existing_user:
-            return render_template("signup.html", error="Username or email already exists", password=password, confirm=confirm_pw)
-        elif re.search(r'[!@#$%^&*(),.?":{}|<>]', username):
-            return render_template("signup.html", error="Username cannot contain special characters", email=signup_email)
-        elif len(password) <= 7:
-            return render_template("signup.html", error="Password too short!", username=username, email=signup_email)
-        elif len(password) >= 15:
-            return render_template("signup.html", error="Password too long", username=username, email=signup_email)
-        elif password != confirm_pw:
-            return render_template("signup.html", error="Passwords do not match!")
+            # Check email length
+            if len(signup_email) > 50:  # Adjust the maximum length as needed
+                return render_template("newsignup.html", error="Email address is too long", username=username)
 
+            password_uppercase_regex = re.compile(r'[A-Z]')
+            password_lowercase_regex = re.compile(r'[a-z]')
+            password_special_regex = re.compile(r'[!@#$%^&*(),.?":{}|<>]')
+            # Check email length
+            if len(signup_email) > 50:  # Adjust the maximum length as needed
+                return render_template("newsignup.html", error="Email address is too long", username=username)
+
+            existing_user = users_collection.find_one({"$or": [{"username": username}, {"email": signup_email}]})
+            
+            if existing_user:
+                return render_template("newsignup.html", error="Username or email already exists", password=password, confirm=confirm_pw)
+            elif not password_uppercase_regex.search(password):
+                return render_template("newsignup.html", error="Password must contain at least one uppercase letter", username=username, email=signup_email)
+
+            # Check if the password contains at least one lowercase letter
+            elif not password_lowercase_regex.search(password):
+                return render_template("newsignup.html", error="Password must contain at least one lowercase letter", username=username, email=signup_email)
+
+            # Check if the password contains at least one special character
+            elif not password_special_regex.search(password):
+                return render_template("newsignup.html", error="Password must contain at least one special character", username=username, email=signup_email)       
+            elif re.search(r'[!@#$%^&*(),.?":{}|<>]', username):
+                return render_template("newsignup.html", error="Username cannot contain special characters", email=signup_email)
+            elif len(password) <= 7:
+                return render_template("newsignup.html", error="Password too short!", username=username, email=signup_email)
+            elif len(password) >= 15:
+                return render_template("newsignup.html", error="Password too long", username=username, email=signup_email)
+            elif password != confirm_pw:
+                return render_template("newsignup.html", error="Passwords do not match!")
+            
+            else:
+                signup_email = request.form["email"]
+                print("Received username:", username)
+                print("Received email:", signup_email)
+                
+                # Hash and salt the password using bcrypt
+                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+                user = {"username": username, "password": hashed_password, "email": signup_email, "subscribed_to_newsletter": bool(subscribe), "createdOn": datetime.utcnow(), "modifiedOn": datetime.utcnow()}
+                users_collection.insert_one(user)
+                otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+                # Save the OTP in the session
+                session["otp"] = otp
+
+                # Send the OTP to the email address
+                send_otp_email(signup_email, otp)
+
+                return render_template("otp_verification.html", info="OTP has been sent to your email.")
         else:
-            # Hash and salt the password using bcrypt
-            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+            # reCAPTCHA verification failed
+            print("reCAPTCHA verification failed")
+            return render_template("newsignup.html", error="reCAPTCHA verification failed")
 
-            user = {"username": username, "password": hashed_password, "email": signup_email, "subscribed_to_newsletter": bool(subscribe)}
-            users_collection.insert_one(user)
-            otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
-
-            # Save the OTP in the session
-            session["otp"] = otp
-
-            # Send the OTP to the email address
-            send_otp_email(signup_email, otp)
-
-            return render_template("otp_verification.html", info="OTP has been sent to your email.")
+    return render_template("newsignup.html")
 
 
 
@@ -545,36 +649,53 @@ def teacher_signup():
         password = request.form["password"]
         confirm_pw = request.form["confirm"]
         signup_email = request.form["email"]
+        csrf_token = request.form.get("csrf_token")
+        recaptcha_token = request.form.get("g-recaptcha-response")  # Get reCAPTCHA token
+        print("Received CSRF Token:", csrf_token)
+        print("Received reCAPTCHA Token:", recaptcha_token)
+
+        # Verify reCAPTCHA token
+        verify_response = requests.post(url=app.config['VERIFY_URL'], data={
+            "secret": app.config['RE_SECRET_KEY'],
+            "response": recaptcha_token
+        }).json()
+
+        if verify_response["success"]:
+            # reCAPTCHA verification successful
+            print("reCAPTCHA verification successful")
 
         # Validate the email
         try:
             valid_email = validate_email(signup_email)
             signup_email = valid_email.email
         except EmailNotValidError:
-            return render_template("signup.html", error="Invalid email format", password=password, confirm=confirm_pw)
+            return render_template("teacher/teacher_signup.html", error="Invalid email format", password=password, confirm=confirm_pw)
 
         # Check email length
         if len(signup_email) > 50:  # Adjust the maximum length as needed
-            return render_template("signup.html", error="Email address is too long", username=username)
+            return render_template("teacher/teacher_signup.html", error="Email address is too long", username=username)
 
         existing_teacher = teacher_collection.find_one({"$or": [{"username": username}, {"email": signup_email}]})
 
         if existing_teacher:
-            return render_template("signup.html", error="Username or email already exists", password=password, confirm=confirm_pw)
+            return render_template("teacher/teacher_signup.html", error="Username or email already exists", password=password, confirm=confirm_pw)
         elif re.search(r'[!@#$%^&*(),.?":{}|<>]', username):
-            return render_template("signup.html", error="Username cannot contain special characters", email=signup_email)
+            return render_template("teacher/teacher_signup.html", error="Username cannot contain special characters", email=signup_email)
         elif len(password) <= 7:
-            return render_template("signup.html", error="Password too short!", username=username, email=signup_email)
+            return render_template("teacher/teacher_signup.html", error="Password too short!", username=username, email=signup_email)
         elif len(password) >= 15:
-            return render_template("signup.html", error="Password too long", username=username, email=signup_email)
+            return render_template("teacher/teacher_signup.html", error="Password too long", username=username, email=signup_email)
         elif password != confirm_pw:
-            return render_template("signup.html", error="Passwords do not match!")
+            return render_template("teacher/teacher_signup.html", error="Passwords do not match!")
 
         else:
+            signup_email = request.form["email"]
+            print("Received username:", username)
+            print("Received email:", signup_email)
             # Hash and salt the password using bcrypt
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-            teacher = {"username": username, "password": hashed_password, "email": signup_email}
+            teacher = {"username": username, "password": hashed_password, "email": signup_email, "createdOn": datetime.utcnow(), "modifiedOn": datetime.utcnow()}
             teacher_collection.insert_one(teacher)
             otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
@@ -586,7 +707,7 @@ def teacher_signup():
 
             return render_template("otp_verification.html", info="OTP has been sent to your email.")
     
-    return render_template("teacher/teacher_signup.html")
+    return render_template("teacher/teacher_signup.html", site_key=app.config['SITE_KEY'])
 
 
 
@@ -594,16 +715,18 @@ def teacher_signup():
 @login_required
 def home():
     if "username" in session:
-        return render_template("home.html", info=session["username"])  # Updated to pass info instead of username
+        return render_template("newhome.html", info=session["username"])  # Updated to pass info instead of username
     # else:
     #     return redirect("/")
 
 
 
-@app.route("/editprofile")
+@app.route("/editprofile", methods=["GET"])
 @login_required
 def editprofile():
-    return render_template('editprofile.html')
+    profile_picture_url = session.get('profile_picture_url', None)
+    # Render the editpfp.html template
+    return render_template('editprofile.html', profile_picture_url=profile_picture_url)
 
 
 
@@ -652,6 +775,8 @@ def edit_profile():
                 hashed_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
                 update_statement["$set"]["password"] = hashed_password
 
+            update_statement["$set"]["modifiedOn"] = datetime.now(singapore_timezone)
+
             # Update the user document with new values using update_one()
             users_collection.update_one(update_query, update_statement)
 
@@ -661,6 +786,183 @@ def edit_profile():
             return redirect("home")
 
     return render_template("editprofile.html")
+
+
+
+def scan_file(file: object) -> tuple:
+    # upload endpoint
+    files_url = "https://www.virustotal.com/api/v3/files"
+
+    # specify post payload
+    files = {"file": (file.filename, file, file.content_type)}
+    files_headers = {
+        "accept": "application/json",
+        "x-apikey": os.getenv('VT_API_KEY')
+    }
+
+    # post
+    files_response = requests.post(files_url, files=files, headers=files_headers)
+
+    # get response
+    if files_response.status_code == 200:
+        # if response is ok
+        files_response_data = files_response.json()
+        # get the id from json response
+        analysis_id = files_response_data["data"]["id"]
+
+    else:
+        return 'UploadError', 'Error'
+
+    # analysis endpoint with file id
+    analysis_url = "https://www.virustotal.com/api/v3/analyses/" + analysis_id
+
+    # specify headers
+    analysis_headers = {
+        "accept": "application/json",
+        "x-apikey": os.getenv('VT_API_KEY')
+    }
+
+    # post
+    analysis_response = requests.get(analysis_url, headers=analysis_headers)
+
+    # declare attempts count
+    attempts = 1
+
+    # retry getting analysis response for max 120 times in 2 minutes if virustotal slow like snorlax
+    while attempts < 120 and analysis_response.status_code == 200 and analysis_response.json()["data"]["attributes"]["status"] in ['queued', 'in-progress']:
+        time.sleep(1)
+        analysis_response = requests.get(analysis_url, headers=analysis_headers)
+        attempts += 1
+        # if attempts more than 30 just timeout
+        if attempts >= 30:
+            return 'File timed out.', 'Timeout'
+
+    # get response
+    if analysis_response.status_code == 200:
+        # if response is ok
+        analysis_response_data = analysis_response.json()
+        amogusus = analysis_response_data["data"]["attributes"]["stats"]["suspicious"]
+        malicious = analysis_response_data["data"]["attributes"]["stats"]["malicious"]
+
+        # if got sussy
+        if amogusus > 0 or malicious > 0:
+            return "The file is potentially unsafe.", 'Unsafe'
+
+        # if no sussy
+        elif amogusus == 0 and malicious == 0:
+            file.seek(0)
+            return "The file is safe. No antivirus engines detected any threats.", 'Safe'
+
+        else:
+            return "Error occurred during file scanning.", 'Scan'
+
+    else:
+        # handle errors
+        return "Error occurred during file scanning.", 'Scan'
+
+
+
+
+@app.route('/get_image/<file_id>')
+def get_image(file_id):
+    file = fs.get(ObjectId(file_id))
+    if file is not None:
+        data = file.read()
+        response = make_response(data)
+        response.headers.set('Content-Type', file.content_type)
+        response.headers.set('Content-Disposition', 'inline')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    else:
+        return 'Image not found'
+
+
+
+@app.route('/edit_pfp', methods=["GET", "POST"])
+@login_required
+def edit_pfp():
+    if request.method == 'POST':
+        photo = request.files['photo']
+        current_user_id = session.get('username')
+
+        # Save the photo to GridFS
+        if photo and len(photo.read()) <= MAX_FILE_SIZE:
+            photo.seek(0)  # Reset file pointer after reading
+            filename = secure_filename(photo.filename)
+            file_id = fs.put(photo, filename=filename)
+
+            print(f"{current_user_id} is uploading, {filename}")
+
+            print("Performing file scan...")  # Debugging statement
+            # Call the scan_file function
+            _, scan_status = scan_file(photo)
+            print("File scan completed.")  # Debugging statement
+
+            if scan_status == 'Safe':
+                # Proceed with saving the profile picture
+
+                # Obtain the current user's ID from the session
+                current_user_id = session.get('username')
+
+                # Check if the user already has a profile picture
+                existing_pfp = pfp_collection.find_one({'author_id': current_user_id})
+
+                if existing_pfp:
+                    # Delete the old profile picture from GridFS
+                    old_file_id = existing_pfp['image_file_id']
+                    fs.delete(ObjectId(old_file_id))
+
+                    # Update the existing profile picture with the new one
+                    pfp_collection.update_one({'author_id': current_user_id}, {'$set': {'image_file_id': file_id}})
+                else:
+                    # Insert the new profile picture into the database
+                    pfp = {
+                        'author_id': current_user_id,
+                        'image_file_id': file_id,
+                    }
+                    pfp_collection.insert_one(pfp)
+
+                # Update the session with the profile picture URL
+                profile_picture_url = url_for('get_image', file_id=file_id)
+                session['profile_picture_url'] = profile_picture_url
+
+                # Debugging: Print the profile picture URL
+                print("Profile Picture URL:", profile_picture_url)
+
+                # Return success message and profile picture URL in JSON format
+                return jsonify({"success": True, "profile_picture_url": profile_picture_url})
+
+            elif scan_status == 'Unsafe':
+                # Handling unsafe files
+                flash("The uploaded file is potentially unsafe. Please upload a different image.", "error")
+                return jsonify({"success": False, "error": "Unsafe file"}), 400
+
+            elif scan_status == 'UploadError':
+                # Handling upload errors
+                flash("Error occurred during file upload. Please try again later.", "error")
+                return jsonify({"success": False, "error": "Upload error"}), 500
+
+            elif scan_status == 'Timeout':
+                # Handling scan timeout
+                flash("File scan timed out. Please try again later.", "error")
+                return jsonify({"success": False, "error": "Scan timeout"}), 500
+
+            else:
+                # Handling other scan errors
+                flash("Error occurred during file scanning. Please try again later.", "error")
+                return jsonify({"success": False, "error": "Scan error"}), 500
+
+        else:
+            flash("Invalid file. Please upload a valid image (up to 1.5 MB).", "error")
+            return jsonify({"success": False, "error": "Invalid file"}), 400
+
+    # This part will be executed only if the request method is not POST,
+    # which means someone accessed /edit_pfp directly in the browser.
+    # Redirect them back to the edit profile page.
+    return jsonify({"success": False, "error": "Method not allowed"}), 405
+
 
 
 
@@ -750,7 +1052,7 @@ def compose_newsletter():
 @login_required
 def forum():
     # Get all posts from the database
-    posts = posts_collection.find()
+    posts = pfp_collection.find()
     edit_form = EditForm()
     comment_form = CommentForm()
 
@@ -764,7 +1066,7 @@ def forum():
 @admin_login_required
 def admin_forum():
     # Get all posts from the database
-    posts = posts_collection.find()
+    posts = pfp_collection.find()
     edit_form = EditForm()
     comment_form = CommentForm()
 
@@ -782,7 +1084,7 @@ def search_by_author():
     author_id = request.args.get('author_id')
 
     if author_id:
-        posts = posts_collection.find({'author_id': author_id})
+        posts = pfp_collection.find({'author_id': author_id})
     else:
         posts = []
 
@@ -804,349 +1106,25 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# def extract_questions_from_pdf(pdf_content):
-#     questions = []
-
-#     try:
-#         # Create a temporary directory
-#         temp_dir = tempfile.mkdtemp()
-
-#         # Save the PDF content to a temporary file in the created directory
-#         temp_pdf_path = os.path.join(temp_dir, "temp_pdf.pdf")
-#         with open(temp_pdf_path, "wb") as temp_pdf:
-#             temp_pdf.write(pdf_content)
-
-#         # Open the temporary file with PyMuPDF
-#         doc = fitz.open(temp_pdf_path)
-
-#         for page_num in range(doc.page_count):
-#             page = doc[page_num]
-#             text = page.get_text()
-
-#             # Split text into lines
-#             lines = text.split('\n')
-
-#             # Extract lines starting with "question" (case-insensitive)
-#             for line in lines:
-#                 if line.strip().lower().startswith("question"):
-#                     questions.append(line.strip())
-
-#         # Check if any valid questions were found
-#         if not questions:
-#             raise ValueError("No valid questions found in the PDF")
-
-#         return questions
-
-#     except Exception as e:
-#         # Handle exceptions (print or log the error, and consider raising a custom exception)
-#         print(f"Error extracting questions: {e}")
-#         return []
-
-#     finally:
-#         # Close the PyMuPDF document and delete the temporary directory
-#         doc.close()
-#         shutil.rmtree(temp_dir, ignore_errors=True)
-
-# def save_questions_to_mongodb(caption, questions, file_content):
-#     # Save the file to GridFS
-#     fs = GridFS(db)
-#     file_id = fs.put(file_content, filename=caption)
-
-#     # Insert questions and file_id into the collection
-#     quiz_collection.insert_one({'caption': caption, 'questions': questions, 'file_id': file_id})
-
-# @app.route('/upload_quiz', methods=['GET', 'POST'])
-# def upload_quiz():
-#     questions = []  # Initialize questions here
-#     if request.method == 'POST':
-#         caption = request.form['caption']
-#         file = request.files['file']
-
-#         if file and allowed_file(file.filename) and len(file.read()) <= MAX_FILE_SIZE:
-#             file.seek(0)  # Reset file pointer after reading
-#             file_extension = file.filename.rsplit('.', 1)[1].lower()
-
-#             if file_extension == 'pdf':
-#                 file_content = file.read()
-#                 questions = extract_questions_from_pdf(file_content)
-#                 save_questions_to_mongodb(caption, questions, file_content)
-
-#             elif file_extension == 'txt':
-#                 # Handle text file extraction here if needed
-#                 pass
-
-#             return render_template('quiz.html', caption=caption, questions=questions)
-
-#     return render_template('upload_quiz.html')
-
-
-
-
-# def extract_quiz_data(pdf_path):
-#     with fitz.open(pdf_path) as pdf_document:
-#         num_pages = pdf_document.page_count
-
-#         quiz_data = []
-
-#         for page_num in range(num_pages):
-#             page = pdf_document[page_num]
-#             text = page.get_text()
-
-#             # Use regular expressions to identify questions and answers
-#             question_pattern = re.compile(r'Question (\d+):(.+?)(?=(\nAnswer|\nCorrect)|$)', re.DOTALL)
-#             answer_pattern = re.compile(r'Answer:(.+?)(?=(\nCorrect|$))', re.DOTALL)
-#             correct_answer_pattern = re.compile(r'Correct:(.+?)(?=\n|$)', re.DOTALL)
-
-#             questions = question_pattern.findall(text)
-#             answers = answer_pattern.findall(text)
-#             correct_answers = correct_answer_pattern.findall(text)
-
-#             # Add data to the quiz_data list
-#             for question in questions:
-#                 q_num, q_text = question
-#                 quiz_data.append({
-#                     'question': f"{q_num}: {q_text.strip()}",
-#                     'answers': [ans.strip() for ans in answers[i].split(',')],
-#                     'correct_answer': correct_answers[i].strip()
-#                 })
-
-#     print("Extracted Quiz Data:", quiz_data)
-#     return quiz_data
-
-
-
-
-# @app.route('/upload_quiz', methods=['GET', 'POST'])
-# def upload_quiz():
-#     if request.method == 'POST':
-#         if 'file' not in request.files:
-#             flash('No file part', 'error')
-#             return redirect(request.url)
-
-#         file = request.files['file']
-
-#         if file.filename == '':
-#             flash('No selected file', 'error')
-#             return redirect(request.url)
-
-#         if file:
-#             # Save the uploaded file to the 'uploads' directory
-#             upload_directory = 'uploads'
-#             os.makedirs(upload_directory, exist_ok=True)
-#             file_path = os.path.join(upload_directory, file.filename)
-#             file.save(file_path)
-
-#             # Save file path and quiz data to MongoDB
-#             quiz_data = extract_quiz_data(file_path)
-#             print("Extracted Quiz Data:", quiz_data)  # Add this line for debugging
-#             quiz_document = {'file_path': file_path, 'quiz_data': quiz_data}
-#             quiz_collection.insert_one(quiz_document)
-
-#             flash('Quiz uploaded successfully', 'success')
-#             return render_template('upload_quiz.html', quiz_data=quiz_data)
-
-#     return render_template('upload_quiz.html')
-
-
-
-# @app.route('/quiz')
-# def quiz():
-#     # Retrieve quiz data from MongoDB
-#     quiz_data = quiz_collection.find()
-
-#     return render_template('quiz.html', quiz_data=quiz_data)
-
-
-
-# @app.route('/submit_quiz', methods=['POST'])
-# def submit_quiz():
-#     # Handle user-submitted answers
-#     user_answers = request.form.to_dict()
-    
-#     # Compare user answers with correct answers
-#     for question_id, user_answer in user_answers.items():
-#         correct_answer = quiz_collection.find_one({'_id': ObjectId(question_id)})['correct_answer']
-#         if user_answer == correct_answer:
-#             feedback = "Correct!"
-#         else:
-#             feedback = "Incorrect."
-
-#         # You can update a user's feedback in MongoDB or do other actions as needed.
-
-#     return render_template('feedback.html', feedback=feedback)
-
-
-
-################################################## Add questions for quizzes #######################################################################################################
-
-
-
-# @app.route('/add_post', methods=['GET', 'POST'])
-# @login_required
-# def add_post():
-#     if request.method == 'POST':
-#         # Get the data from the form
-#         caption = request.form['caption']
-#         if any(char in '<>/\\' for char in caption):
-#             flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
-#             return redirect(url_for('add_post'))
-
-#         photo = request.files['photo']
-
-#         # Save the photo to GridFS
-#         if photo and allowed_file(photo.filename) and len(photo.read()) <= MAX_FILE_SIZE:
-#             photo.seek(0)  # Reset file pointer after reading
-#             filename = secure_filename(photo.filename)
-#             file_id = fs.put(photo, filename=filename)
-
-#             # Obtain the current user's ID from the session
-#             current_user_id = session.get('username')  # Replace 'user_id' with the actual key you use to store user ID in session
-
-#             # Insert the new post into the database with 'author_id' field
-#             post = {
-#                 'author_id': current_user_id,
-#                 'image_file_id': file_id,
-#                 'caption': caption,
-#                 'comments': []
-#             }
-#             posts_collection.insert_one(post)
-
-#             return redirect(url_for('forum'))
-
-
-#         else:
-#             flash("Invalid file. Please upload a valid image (up to 1.5 MB) with allowed extensions: jpg, jpeg, png, gif.","error")
-#             return redirect(url_for('add_post'))
-
-#     return render_template('upload_post.html')
-
-
-
-# def get_current_user_id():
-#     return session.get('username')
-
-
-
-# @app.route('/add_comment', methods=['POST'])
-# def add_comment():
-#     # Get the data from the form
-#     post_id = request.form['post_id']
-#     comment_text = request.form['comment_text']
-#     if any(char in '<>/\\' for char in comment_text):
-#         flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
-#         return redirect(url_for('forum'))
-
-#     # Find the post in the database
-#     post = posts_collection.find_one({'_id': ObjectId(post_id)})
-
-#     if post:
-#         # Add the comment to the post with user information
-#         current_user_id = session.get('username')  # Replace 'user_id' with the actual key you use to store user ID in session
-#         comment_data = {
-#             'username': current_user_id,
-#             'comment_text': comment_text
-#         }
-#         post['comments'].append(comment_data)
-#         posts_collection.update_one({'_id': ObjectId(post_id)}, {'$set': post})
-
-#         # Return the added comment as part of the JSON response
-#         return jsonify({'comment': comment_text}), 200
-
-#     # If the post is not found, return an error response
-#     return jsonify({'error': 'Post not found'}), 404
-
-
-
-# @app.route('/edit_post/<post_id>', methods=['GET', 'POST'])
-# def edit_post(post_id):
-#     # Retrieve the post from the database based on the provided 'post_id'
-#     post = posts_collection.find_one({'_id': ObjectId(post_id)})
-
-#     # Check if the post is not found or the user is not authorized to edit it
-#     if not post or post['author_id'] != session.get('username'):
-#         flash("You are not authorized to edit this post", "error")
-#         return redirect(url_for('forum'))
-
-#     # Process the POST request (when the form is submitted)
-#     if request.method == 'POST':
-#         # Get the new caption from the form
-#         new_caption = request.form['caption']
-#         if any(char in '<>/\\' for char in new_caption):
-#             flash("Invalid characters in the caption. Please avoid using <, >, /, or \\ characters.")
-#             return redirect(url_for('forum'))
-
-#         # Update the 'caption' field of the post in the database
-#         posts_collection.update_one({'_id': ObjectId(post_id)}, {'$set': {'caption': new_caption}})
-
-#         # Redirect to the 'forum' route after the post is edited
-#         return redirect(url_for('forum'))
-
-
-#     return render_template('edit_post.html', post=post)
-
-
-
-# @app.route('/delete_post/<post_id>', methods=['POST'])
-# @csrf.exempt  # Since you're validating CSRF token manually, exempt this route
-# def delete_post(post_id):
-#     try:
-#         post = posts_collection.find_one({"_id": ObjectId(post_id)})
-
-#         if post:
-#             # Check if the current user's username matches the post's creator username
-#             if post["author_id"] == session.get('username'):
-#                 # Delete post document
-#                 posts_collection.delete_one({"_id": post["_id"]})
-#                 # Delete associated image
-#                 fs.delete(post["image_file_id"])
-#                 return jsonify({"message": "Post deleted successfully"}), 200
-#             else:
-#                 return jsonify({"message": "You are not authorized to delete this post"}), 403
-#         else:
-#             return jsonify({"message": "Post not found"}), 404
-
-#     except Exception as e:
-#         return jsonify({"message": str(e)}), 500
-
-
-
-# @app.route('/admin_delete_post/<post_id>', methods=['POST'])
-# @admin_login_required
-# @csrf.exempt  # Since you're validating CSRF token manually, exempt this route
-# def admin_delete_post(post_id):
-#     try:
-#         # Delete the post and its associated image from MongoDB
-#         post = posts_collection.find_one({"_id": ObjectId(post_id)})
-#         if post:
-#             # Delete post document
-#             posts_collection.delete_one({"_id": post["_id"]})
-#             # Delete associated image
-#             fs.delete(post["image_file_id"])
-#             return jsonify({"message": "Post deleted successfully"}), 200
-#         else:
-#             return jsonify({"message": "Post not found"}), 404
-
-#     except Exception as e:
-#         return jsonify({"message": str(e)}), 500
-
-####################### Admin Codes for quiz ###################################
-
-
 
 @app.route('/admin_dashboard')
+@admin_login_required
 def admin_dashboard_view():
     total_course = quiz_collection.count_documents({})
     total_users = users_collection.count_documents({})
+    total_teachers = teacher_collection.count_documents({}) 
 
     context = {
         'total_course': total_course,
-        'total_users': total_users
+        'total_users': total_users,
+        'total_teachers': total_teachers,
     }
     return render_template('admin/admin_dashboard.html', **context)
 
 
 
 @app.route('/admin_view-exam')
+@admin_login_required
 def admin_view_exam_view():
     courses = quiz_collection.find()
     return render_template('admin/admin_view_exam.html', courses=courses)
@@ -1154,6 +1132,7 @@ def admin_view_exam_view():
 
 
 @app.route('/admin_delete-exam/<string:course_id>')
+@admin_login_required
 def admin_delete_exam_view(course_id):
     try:
         course_id_obj = ObjectId(course_id)  # Convert course_id to ObjectId
@@ -1161,17 +1140,21 @@ def admin_delete_exam_view(course_id):
 
         if result.deleted_count > 0:
             # Exam successfully deleted
+            flash('Quiz has been successfully deleted', 'success')
             return redirect(url_for('admin_view_exam_view'))
         else:
             # Exam not found or not deleted
-            return render_template('error.html', message='Exam not found')
+            flash('Quiz not found or could not be deleted', 'error')
+            return render_template('error.html', message='Quiz not found')
     except Exception as e:
-        print(f"Error deleting exam: {e}")
+        print(f"Error deleting quiz: {e}")
+        flash('Error deleting quiz', 'error')
         return render_template('error.html', message='Invalid course ID')
 
 
 
 @app.route('/admin_view-question')
+@admin_login_required
 def admin_view_question_view():
     courses = quiz_collection.find()
     return render_template('admin/admin_view_question.html', courses=courses)
@@ -1179,6 +1162,7 @@ def admin_view_question_view():
 
 
 @app.route('/admin_see-question/<string:course_id>')
+@admin_login_required
 def admin_see_question_view(course_id):
     if ObjectId.is_valid(course_id):
         print(f"Received course_id: {course_id}")
@@ -1196,13 +1180,21 @@ def admin_see_question_view(course_id):
     
 
 
+from flask import flash
+
 @app.route('/admin_remove-question/<string:course_id>/<string:question_id>')
+@admin_login_required
 def admin_remove_question_view(course_id, question_id):
-    quiz_collection.update_one(
+    result = quiz_collection.update_one(
         {'_id': ObjectId(course_id)},
         {'$pull': {'questions': {'_id': ObjectId(question_id)}}}
     )
+    if result.modified_count > 0:
+        flash('Question has been successfully deleted', 'success')
+    else:
+        flash('Failed to delete question', 'error')
     return redirect(url_for('admin_view_question_view'))
+
 
 
 
@@ -1213,18 +1205,16 @@ def admin_remove_question_view(course_id, question_id):
 @app.route('/teacher_dashboard')
 def teacher_dashboard_view():
     total_course = quiz_collection.count_documents({})
-    # total_question = quiz_collection.aggregate([
-    #     {"$group": {"_id": None, "total": {"$sum": "$question_number"}}}
-    # ]).next()['total']
     total_users = users_collection.count_documents({})  # Assuming you want to count the number of users
+    total_teachers = teacher_collection.count_documents({}) 
 
     context = {
         'total_course': total_course,
-        # 'total_question': total_question,
+        'total_teachers': total_teachers,
         'total_users': total_users  # Change to total_users
     }
     if "username" in session:
-        return render_template('teacher/teacher_dashboard.html', context=context, info=session["username"]) # Updated to pass info instead of username
+        return render_template('teacher/teacher_dashboard.html', **context, info=session["username"]) # Updated to pass info instead of username
 
 
 
@@ -1242,9 +1232,11 @@ def teacher_add_exam_view():
         course_name = courseForm.course_name.data
         question_number = courseForm.question_number.data
         total_marks = courseForm.total_marks.data
+        current_user_id = session.get('username')
 
         course_data = {
             'course_name': course_name,
+            'author_id': current_user_id,
             'question_number': question_number,
             'total_marks': total_marks
         }
@@ -1271,14 +1263,16 @@ def delete_exam_view(course_id):
 
         if result.deleted_count > 0:
             # Exam successfully deleted
+            flash('Quiz has been successfully deleted', 'success')
             return redirect(url_for('teacher_view_exam_view'))
         else:
             # Exam not found or not deleted
-            return render_template('error.html', message='Exam not found')
+            flash('Quiz not found or could not be deleted', 'error')
+            return render_template('error.html', message='Quiz not found')
     except Exception as e:
-        print(f"Error deleting exam: {e}")
+        print(f"Quiz deleting exam: {e}")
+        flash('Quiz deleting exam', 'error')
         return render_template('error.html', message='Invalid course ID')
-
 
 
 @app.route('/teacher_question', methods=['GET', 'POST'])
@@ -1303,11 +1297,15 @@ def teacher_add_question_view():
             option4 = question_form.option4.data
             answer = question_form.answer.data
 
+            # Generate a unique ID for the question
+            question_id = ObjectId()
+
             # Retrieve selected course ID from the form
             course_id = course_form.course_id.data
 
-            # Create a new question dictionary
+            # Create a new question dictionary with the generated ID
             question = {
+                '_id': question_id,  # Assign the generated ID
                 'marks': marks,
                 'question': question_text,
                 'option1': option1,
@@ -1326,7 +1324,6 @@ def teacher_add_question_view():
     courses = quiz_collection.find()
     
     return render_template('teacher/teacher_add_question.html', question_form=question_form, course_form=course_form, courses=courses)
-
 
 
 @app.route('/teacher_view-question')
@@ -1356,28 +1353,83 @@ def see_question_view(course_id):
 
 @app.route('/teacher_remove-question/<string:course_id>/<string:question_id>')
 def remove_question_view(course_id, question_id):
-    quiz_collection.update_one(
-        {'_id': ObjectId(course_id)},
-        {'$pull': {'questions': {'_id': ObjectId(question_id)}}}
-    )
+    try:
+        quiz_collection.update_one(
+            {'_id': ObjectId(course_id)},
+            {'$pull': {'questions': {'_id': ObjectId(question_id)}}}
+        )
+        flash('Question successfully deleted', 'success')
+    except Exception as e:
+        print(f"Error deleting question: {e}")
+        flash('Failed to delete question', 'error')
     return redirect(url_for('teacher_view_question_view'))
 
 
 
-@app.route('/image/<file_id>')
-def get_image(file_id):
-    file = fs.get(ObjectId(file_id))
-    if file is not None:
-        data = file.read()
-        response = make_response(data)
-        response.headers.set('Content-Type', file.content_type)
-        response.headers.set('Content-Disposition', 'inline')
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
-        return response
+######################################### user codes for quiz ##########################################################
+
+
+
+@app.route("/quiz")
+@login_required
+def quiz():
+    quizzes = quiz_collection.find()
+    return render_template("quiz.html", quizzes=quizzes)
+
+
+
+@app.route("/attempt_quiz/<quiz_id>")
+@login_required
+def attempt_quiz(quiz_id):
+    quiz = quiz_collection.find_one({'_id': ObjectId(quiz_id)})
+    if quiz:
+        return render_template("quiz2.html", quiz=quiz)
     else:
-        return 'Image not found'
+        # Handle the case where the quiz with the given ID is not found
+        return render_template("quiz_not_found.html")
+
+
+
+@app.route("/submit_attempt/<quiz_id>", methods=['POST'])
+@login_required
+def submit_attempt(quiz_id):
+    quiz = quiz_collection.find_one({'_id': ObjectId(quiz_id)})
+    user_answers = request.form.to_dict(flat=False)
+    correct_answers = {}
+
+    # Extract correct answers from the quiz
+    for question in quiz['questions']:
+        correct_answers[str(question['_id'])] = question['answer']
+
+    # Compare user's answers with correct answers
+    wrong_answers = {}
+    for question_id, user_answer in user_answers.items():
+        if question_id.startswith('answer_'):
+            question_id = question_id[len('answer_'):]
+            if user_answer[0] != correct_answers.get(question_id):
+                wrong_answers[question_id] = user_answer[0]
+
+    return render_template("quiz_results.html", quiz=quiz, wrong_answers=wrong_answers, str=str)
+
+
+
+@app.route('/search_by_teacher')
+@login_required
+def search_by_teacher():
+    query = request.args.get('query')
+    quizzes = []
+
+    if query:
+        # Search by both author ID and course name
+        query_filter = {
+            '$or': [
+                {'author_id': {'$regex': query, '$options': 'i'}},  # Case-insensitive regex search for author ID
+                {'course_name': {'$regex': query, '$options': 'i'}}  # Case-insensitive regex search for course name
+            ]
+        }
+        quizzes = quiz_collection.find(query_filter)
+
+    return render_template('quiz.html', quizzes=quizzes)
     
 
 
@@ -1386,40 +1438,127 @@ def get_image(file_id):
 
 
 
+# @app.route('/feedback', methods=['GET', 'POST'])
+# @login_required
+# def feedback():
+#     feedback = FeedbackForm()
+#     success_message = None  # Initialize the success message as None
+
+#     if feedback.validate_on_submit():
+#         form_data = {
+#             "first_name": feedback.first_name.data,
+#             "last_name": feedback.last_name.data,
+#             "email": feedback.email.data,
+#             "title": feedback.title.data,
+#             "remarks": feedback.remarks.data,
+#         }
+#         result = store_feedback_to_mongodb(form_data)
+#         success_message = result  # Set the success message
+#         flash(result)  # Optionally show a success message to the user
+#         return redirect("home")  # Redirect the user to the home page after submission
+#     else:
+#         print("Form validation errors:", feedback.errors)
+
+#     return render_template('feedback.html', form=feedback, success_message=success_message)
+
+
+
+# def store_feedback_to_mongodb(form_data):
+#     # Access the desired collection in the wildvine database
+#     collection = db["feedbacks"]
+
+#     # Insert the form data into the collection
+#     insert_result = collection.insert_one(form_data)
+#     print("Data inserted with ID:", insert_result.inserted_id)
+
+#     return "Feedback submitted successfully!"
+
+
 @app.route('/feedback', methods=['GET', 'POST'])
 @login_required
 def feedback():
-    feedback = FeedbackForm()
-    success_message = None  # Initialize the success message as None
+    form = FeedbackForm()  # Instantiate the FeedbackForm class
+    filename = None  # Initialize filename variable
 
-    if feedback.validate_on_submit():
-        form_data = {
-            "first_name": feedback.first_name.data,
-            "last_name": feedback.last_name.data,
-            "email": feedback.email.data,
-            "title": feedback.title.data,
-            "remarks": feedback.remarks.data,
-        }
-        result = store_feedback_to_mongodb(form_data)
-        success_message = result  # Set the success message
-        flash(result)  # Optionally show a success message to the user
-        return redirect("home")  # Redirect the user to the home page after submission
-    else:
-        print("Form validation errors:", feedback.errors)
+    if request.method == 'POST':
+        # Handle file upload
+        if 'screenshot' in request.files:
+            file = request.files['screenshot']
+            if file:
+                filename = secure_filename(file.filename)
+                print("Received file:", filename)  # Debugging line
+                # Save the uploaded file to MongoDB
+                save_screenshot_to_mongodb(file, filename)
+                
+                # Scan the uploaded file using VirusTotal API
+                scan_result, scan_status = scan_file(file)
+                if scan_status == 'Safe':
+                    flash("Screenshot uploaded and scanned. It's safe.")
+                elif scan_status == 'Unsafe':
+                    flash("Screenshot uploaded and scanned. It's potentially unsafe. Please review.")
+                elif scan_status == 'Timeout':
+                    flash("Screenshot upload successful but scanning timed out. Please try again later.")
+                else:
+                    flash("Screenshot upload successful but scanning encountered an error. Please try again later.")
 
-    return render_template('feedback.html', form=feedback, success_message=success_message)
+        # Handle other form data
+        # Access form fields using request.form['field_name']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        email = request.form['email']
+        title = request.form['title']
+        remarks = request.form['remarks']
+
+        # Store feedback data in MongoDB
+        store_feedback_to_mongodb(first_name, last_name, email, title, remarks, filename)
+
+        flash("Feedback submitted successfully!")
+        return redirect("home")
+
+    return render_template('feedback.html', form=form)
 
 
+def save_screenshot_to_mongodb(file, filename):
+    # Access the desired collection in MongoDB
+    fs = GridFS(db)
 
-def store_feedback_to_mongodb(form_data):
-    # Access the desired collection in the wildvine database
+    # Store the file in MongoDB
+    with fs.new_file(filename=filename) as fp:
+        fp.write(file.read())
+        fp.close()
+
+
+def store_feedback_to_mongodb(first_name, last_name, email, title, remarks, filename):
+    # Access the desired collection in MongoDB
     collection = db["feedbacks"]
 
-    # Insert the form data into the collection
-    insert_result = collection.insert_one(form_data)
-    print("Data inserted with ID:", insert_result.inserted_id)
+    # Prepare feedback data including the filename of the screenshot
+    form_data = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "title": title,
+        "remarks": remarks,
+        "screenshot": filename  # Include the filename of the uploaded screenshot
+    }
 
-    return "Feedback submitted successfully!"
+    # Insert the form data into the collection
+    collection.insert_one(form_data)
+
+
+
+@app.route('/feedback/screenshot/<filename>')
+def get_screenshot(filename):
+    # Retrieve the screenshot file from MongoDB GridFS
+    fs = GridFS(db)
+    screenshot_file = fs.find_one({"filename": filename})
+
+    if screenshot_file:
+        # Return the file as a response
+        return send_file(io.BytesIO(screenshot_file.read()), mimetype='image/*')
+    else:
+        # Return a placeholder image or handle the case when the file is not found
+        pass  # Implement your logic here
 
 
 
@@ -1427,7 +1566,7 @@ def store_feedback_to_mongodb(form_data):
 @admin_login_required
 def feedback_log():
     feedback_data = fetch_feedback_data_from_mongodb()  # Fetch feedback data from MongoDB
-    return render_template('feedback_log.html', feedback_data=feedback_data)
+    return render_template('admin/admin_feedback.html', feedback_data=feedback_data)
 
 
 
@@ -1438,80 +1577,89 @@ def fetch_feedback_data_from_mongodb():
 
 
 
-######   report codes       ######
-####################################################################                  report for comments - lionel and jun wen                ###################################################
-@app.route('/report', methods=['GET', 'POST'])
-@login_required
-def report():
-    report_c = Report_c_Form()
-    if report_c.validate_on_submit():
-        form_data = {
-            "title": report_c.title.data,
-            "remarks": report_c.remarks.data,
-        }
-        result = store_report_to_mongodb(form_data)
-        flash(result)
-        return redirect("home")
-    return render_template('report_c.html', form=report_c)
-
-def store_report_to_mongodb(form_data):
-    # Access the desired collection in the wildvine database
-    collection = db["reports_c"]
-
-    # Insert the form data into the collection
-    insert_result = collection.insert_one(form_data)
-    print("Data inserted with ID:", insert_result.inserted_id)
-
-    return "Report submitted successfully!"
-
-
-
-@app.route('/report_c_log')
-@admin_login_required
-def report_c_log():
-    report_data = fetch_report_data_from_mongodb_c()
-    return render_template('report_c_log.html', report_data=report_data)
-
-
-
-def fetch_report_data_from_mongodb_c():
-    collection = db["reports_c"]
-    report_data = list(collection.find())  # Retrieve all report documents from the collection
-    print("Fetched Report Data:", report_data)  # Add this line for debugging
-    return report_data
-
-
 ###################################        report for posts - took lionels report codes and modified to suit report of posts - adarsh        ####################################
+# @app.route('/report_form', methods=['POST', 'GET'])
+# @login_required
+# def report_form():
+#     report_form = ReportForm()  # Create an instance of the ReportForm class
+
+#     if request.method == 'POST':
+#         if report_form.validate_on_submit():  # Validate the form data
+#             report_reason = report_form.title.data  # Get the selected reason from the form
+#             remarks = report_form.remarks.data  # Get the remarks from the form
+
+#             quiz_course_name = request.args.get('quiz_course_name')  # Get post_id from query parameter
+#             quiz_author_id = request.args.get('quiz_author_id')  # Get post_author_id from query parameter
+
+#             reporting_user_id = session.get('username')
+
+#             # Store the report data in your reports_collection or database
+#             report_collection.insert_one({
+#                 "reported_quiz_name": quiz_course_name,
+#                 "reporting_user_id": reporting_user_id,  # Store the reporting user's ID
+#                 "reported_quiz_author_id": quiz_author_id,  # Store post_author_id
+#                 "report_reason": report_reason,
+#                 "remarks": remarks  # Store the remarks in the report
+#             })
+
+#             return redirect(url_for('home'))
+#         else:
+#             return jsonify({"success": False, "error": "Form validation failed"})
+
+#     else:
+#         return render_template('report.html', report_form=report_form)  # Render the form initially
+
+
 @app.route('/report_form', methods=['POST', 'GET'])
 @login_required
 def report_form():
-    report_form = ReportForm()  # Create an instance of the ReportForm class
+    report_form = ReportForm()
 
     if request.method == 'POST':
-        if report_form.validate_on_submit():  # Validate the form data
-            report_reason = report_form.title.data  # Get the selected reason from the form
-            remarks = report_form.remarks.data  # Get the remarks from the form
+        if report_form.validate_on_submit():
+            report_reason = report_form.title.data
+            remarks = report_form.remarks.data
 
-            post_id = request.args.get('post_id')  # Get post_id from query parameter
-            post_author_id = request.args.get('post_author_id')  # Get post_author_id from query parameter
+            quiz_course_name = request.form.get('quiz_course_name')
+            quiz_author_id = request.form.get('quiz_author_id')
+
+            print("quiz_course_name:", quiz_course_name)
+            print("quiz_author_id:", quiz_author_id)
 
             reporting_user_id = session.get('username')
 
-            # Store the report data in your reports_collection or database
-            report_collection.insert_one({
-                "reported_post_id": post_id,
-                "reporting_user_id": reporting_user_id,  # Store the reporting user's ID
-                "reported_post_author_id": post_author_id,  # Store post_author_id
-                "report_reason": report_reason,
-                "remarks": remarks  # Store the remarks in the report
-            })
+            # Handle file upload
+            screenshot = report_form.screenshot.data
+            if screenshot:
+                # Save the file to GridFS
+                filename = secure_filename(screenshot.filename)
+                file_id = fs.put(screenshot, filename=filename)
 
-            return redirect(url_for('home'))
+                # Scan the uploaded file
+                scan_result, scan_status = scan_file(screenshot)
+
+                # Check scan status
+                if scan_status == 'Safe':
+                    # Store the report data along with the GridFS file ID
+                    report_collection.insert_one({
+                        "reported_quiz_name": quiz_course_name,
+                        "reporting_user_id": reporting_user_id,
+                        "reported_quiz_author_id": quiz_author_id,
+                        "report_reason": report_reason,
+                        "remarks": remarks,
+                        "screenshot_id": file_id,  # Store the GridFS file ID
+                    })
+                    return redirect(url_for('home'))
+                else:
+                    # If the file is not safe, delete it from GridFS
+                    fs.delete(file_id)
+                    return jsonify({"success": False, "error": "File scanning failed. The file is potentially unsafe."})
+            else:
+                return jsonify({"success": False, "error": "No file uploaded"})
         else:
             return jsonify({"success": False, "error": "Form validation failed"})
-
     else:
-        return render_template('report.html', report_form=report_form)  # Render the form initially
+        return render_template('report.html', report_form=report_form)
 
 
 
@@ -1519,7 +1667,7 @@ def report_form():
 @admin_login_required
 def report_log():
     report_data = fetch_report_data_from_mongodb()  # Fetch report data from MongoDB
-    return render_template('report_log.html', report_data=report_data)
+    return render_template('admin/admin_report.html', report_data=report_data)
 
 
 
@@ -1528,6 +1676,21 @@ def fetch_report_data_from_mongodb():
     report_data = list(collection.find())  # Retrieve all report documents from the collection
     print("Fetched Report Data:", report_data)  # Add this line for debugging
     return report_data
+
+
+
+@app.route('/get_r_screenshot/<screenshot_id>')
+def get_r_screenshot(screenshot_id):
+    # Retrieve the file from GridFS using the ObjectId
+    file = fs.get(ObjectId(screenshot_id))
+
+    if file:
+        # Serve the file using send_file
+        return send_file(file, mimetype='image/jpeg')
+    else:
+        # Return a 404 Not Found error if the file is not found
+        return "File not found", 404
+
 
 
 
@@ -1548,7 +1711,7 @@ def admin_signup():
 
         else:
             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-            user = {"username": username, "password": hashed_password}
+            user = {"username": username, "password": hashed_password, "createdOn": datetime.utcnow(), "modifiedOn": datetime.utcnow()}
             admin_collection.insert_one(user)
 
             return redirect(url_for('homeb4login'))
@@ -1574,7 +1737,7 @@ def admin_login():
             if next_url:
                 return redirect(next_url)
             else:
-                return redirect('/admin_home')  # Redirect to the admin dashboard page after successful login
+                return redirect('/admin_dashboard')  # Redirect to the admin dashboard page after successful login
 
         else:
             error = "Invalid username or password. Please try again."
@@ -1606,6 +1769,36 @@ def admin_logout():
 
 
 
+@app.route('/logging')
+@admin_login_required
+def logging():
+    username = request.form.get('username')
+    logger.debug(f"{username} tried to access logger")
+    users = db.users.find()
+    teachers = db.teachers.find()
+    admins = db.admin.find()
+    return render_template('logging.html', users=users, teachers=teachers, admins=admins)
+
+@app.route('/loggingdebug')
+def loggingdebug():
+    username = request.form.get('username')
+    logger.debug(f"{username} tried to access logger")
+    with open('logger.log', 'r') as log_file:
+        log_content = log_file.read()
+
+    return render_template('loggingdebug.html',  log_content=log_content)
+
+@app.route('/loggingwarning')
+def loggingwarning():
+    username = request.form.get('username')
+    logger.debug(f"{username} tried to access logger")
+    with open('loggerwarning.log', 'r') as log_file:
+        log_content = log_file.read()
+
+    return render_template('loggingwarning.html',  log_content=log_content)
+
+
+
 # Function to create the 'admin' collection and insert admin details
 def create_admin_collection():
     admin_collection = db["admin"]
@@ -1633,16 +1826,16 @@ def check_role(username):
 
 
 
-scheduler = BackgroundScheduler()
+# scheduler = BackgroundScheduler()
 
-# Add the job to the scheduler
-scheduler.add_job(send_newsletter, trigger=IntervalTrigger(minutes=5))  # Send every 5 minutes
+# # Add the job to the scheduler
+# scheduler.add_job(send_newsletter, trigger=IntervalTrigger(minutes=5))  # Send every 5 minutes
 
-# Start the scheduler
-scheduler.start()
+# # Start the scheduler
+# scheduler.start()
 
-# Ensure the scheduler shuts down gracefully when the app exits
-atexit.register(lambda: scheduler.shutdown())
+# # Ensure the scheduler shuts down gracefully when the app exits
+# atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     # schedule_newsletter()

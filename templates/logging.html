@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Logger Log</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href=" {{url_for('static', filename = 'logging.css' )}}">
+</head>
+<body>
+    <nav>
+      <ul>
+        <li><a href="/admin_dashboard">Home</a></li>
+        <li><a href="/logging">Main</a></li>
+        <li><a href="/loggingdebug">Debug</a></li>
+        <li><a href="/loggingwarning">Warning</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+
+<h1>Logger Main</h1>
+    <br>
+    <h2>User Accounts</h2>
+    <div class="user-box">
+        <table>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Created On</th>
+                <th>Modified On</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.createdOn }}</td>
+                <td>{{ user.modifiedOn }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <h2>Teacher Accounts</h2>
+    <div class="teacher-box">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Created On</th>
+                <th>Modified On</th>
+            </tr>
+            {% for teacher in teachers %}
+            <tr>
+                <td>{{ teacher.username }}</td>
+                <td>{{ teacher.email }}</td>
+                <td>{{ teacher.createdOn }}</td>
+                <td>{{ teacher.modifiedOn }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <h2>Admin Accounts</h2>
+    <div class="admin-box">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Created On</th>
+                <th>Modified On</th>
+            </tr>
+            {% for admin in admins %}
+            <tr>
+                <td>{{ admin.username }}</td>
+                <td>{{ admin.createdOn }}</td>
+                <td>{{ admin.modifiedOn }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</body>
+</html>

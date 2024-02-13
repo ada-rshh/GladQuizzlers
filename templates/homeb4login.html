@@ -14,7 +14,18 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script defer src="https://kit.fontawesome.com/YOUR_ACTUAL_FONTAWESOME_KIT.js" crossorigin="anonymous"></script>
-</head>
+    <script src="https://www.google.com/recaptcha/api.js"></script>
+      <script>
+        function onClick() {
+          e.preventDefault();
+          grecaptcha.ready(function() {
+            grecaptcha.execute('6LdMc2gpAAAAAABlm7CA5pUx15-fIaEdD8gWmbL2', {action: 'submit'}).then(function(token) {
+                document.getElementById('g-captcha-response').value = token;
+                document.getElementById('form').submit();
+            });
+          });
+        }
+    </script>
 
 <body>
     <header>
@@ -93,7 +104,7 @@
                     <div class="form">
                         <div class="close" onclick="closeForm()">&times;</div>
                         <h1>Login</h1>
-                        <form action="/form_login" class="form-container" method="post">
+                        <form action="/form_login" class="form-container" method="POST">
                         <div class="form-group">
                             <label for="username"><b>Username</b></label>
                             <input type="text" placeholder="Enter Username" name="username" required class="form-control">
@@ -108,8 +119,10 @@
                         <a href="/forgot">Forgot Password?</a><br>
                         <a href="/teacher_login">Are you a Teacher? Click here to Login!</a><br>
                         <a href="/admin_login">Admin Login</a><br>
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn">Login</button>
+                        <div class="wthree-field">
+                            <input type="hidden" id="g-captcha-response" name="g-captcha-response">
+                            <button type="button" class="btn" id="submit-button">Get Started</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -127,7 +140,7 @@
                 <div class="form">
                     <div class="close" onclick="closeForm()">&times;</div>
                     <h1>Sign Up</h1>
-                    <form action="/form_signup" class="form-container" method="post">
+                    <form action="/form_signup" class="form-container" method="POST">
                     <div class="form-group">
                         <label for="email"><b>Email</b></label>
                         <input type="email" placeholder="Enter Email" name="email" required class="form-control">
@@ -154,7 +167,7 @@
                     <a href="/form_login">Click here to Login!</a><br>
                     <a href="/teacher_signup">Want to be a Teacher? Sign up HERE!</a><br>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn">Sign Up</button>
+                    <button type="submit" class="g-recaptcha btn" data-sitekey="{{ site_key }}" data-callback='onSubmit' data-action='submit'>Sign Up</button>
                 </form>
             </div>
         </div>

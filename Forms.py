@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, RadioField, SelectField, TextAreaField, validators, SubmitField, FileField, PasswordField, HiddenField,IntegerField
 from wtforms.fields import EmailField
 from wtforms.validators import DataRequired, Email, NumberRange, Regexp, Length
+from flask_wtf.file import FileField, FileAllowed
 
 # feedback form class
 class FeedbackForm(FlaskForm):
@@ -38,6 +39,7 @@ class ReportForm(FlaskForm):
                   ('I just dont like it', 'I just dont like it')]
                   ,default='I just dont like it')
     remarks = TextAreaField('Remarks', [validators.DataRequired()])
+    screenshot = FileField('Screenshot', validators=[FileAllowed(['png', 'jpg', 'jpeg', 'gif'], 'Images only!')])
 
 
 class Report_c_Form(FlaskForm):

@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>signup</title>
-    <link href=" {{url_for('static', filename = 'forgot.css' )}}" rel="stylesheet">
+    <link href=" {{url_for('static', filename = 'newlogin.css' )}}" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
-    <div>
-        <form action="/admin_signup" method="post">
-            <h3 class="words">WILD<span>VINE</span><br>Admin Sign Up</h3>
-
-            <input type="text" name="username" class="input" placeholder="username" required><br>
-            <input type="password" name="password" class="input" placeholder="password" required><br>
-            <input type="password" name="confirm" class="input" placeholder="confirm password" required><br>
-
-
-            <h1 class="validation">{{ error }}</h1>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="submit" value="Sign Up" class="submit" style="width: 6%;">
-        </form>
+    <div class="top-header">
+        <header>Admin Signup</header>
     </div>
+    <form action="/admin_signup" method="POST">
+        <div class="input-field">
+            <input type="text" placeholder="Username" name="username" required class="input">
+            <i class="bx bx-user"></i>
+        </div>
+        <div class="input-field">
+            <input type="password" placeholder="Password" name="password" required class="input">
+            <i class="bx bx-lock-alt"></i>
+        </div>
+        <div class="input-field">
+            <input type="password" placeholder="Confirm Password" name="confirm" required class="input">
+            <i class="bx bx-lock-alt"></i>
+        </div>
+        <p class="validation">{{ error }}</p>
+        <button type="submit" class="submit">Signup</button>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    </form>
 </body>
 </html>

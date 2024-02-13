@@ -1,0 +1,286 @@
+/* POPPINS FONT */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+*{
+    font-family: 'Poppins', sans serif;
+}
+body{
+    background-image: url('./images/purple-anime-aesthetic-office-room-ub1yidzt99c07nfn.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+.box{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+}
+.container{
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 15px 0 15px;
+}
+/* span{
+    color: #fff;
+    font-size: small;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 10px 0;
+} */
+header{
+    color: #fff;
+    font-size: 4rem;
+    font-weight: 500;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 10px 0;
+    margin-top: 300px;
+    margin-right: 30px;
+}
+.input-field{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.input-field .input{
+    height: 45px;
+    width: 30%;
+    border: none;
+    outline: none;
+    border-radius: 30px;
+    color: #fff;
+    padding: 0 0 0 42px;
+    background: rgb(9 26 47 / 64%);
+}
+i {
+    position: relative;
+    top: -31px;
+    left: -280px;
+    color: #fff;
+}
+::-webkit-input-placeholder{
+    color: #fff;
+}
+.submit{
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    height: 45px;
+    outline: none;
+    width: 50%;
+    background: rgb(0, 0, 0);
+    cursor: pointer;
+    transition: .3s;
+    margin-left: 90px;
+    color: #fff;
+}
+.submit:hover{
+    box-shadow: 1px 5px 7px 1px rgba(0, 0, 0, 0.2);
+}
+.bottom{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: small;
+    color: #fff;
+    margin-top: 10px;
+}
+.left{
+    display: flex;
+}
+label a{
+    color: #fff;
+    text-decoration: none;
+    margin-left: 660px;
+    font-weight: 500;
+}
+
+.news{
+    color: #fff;
+    font-weight: 500;
+    display: flex;
+    align-items: center; /* Align items vertically */
+    margin-left: 660px;
+}
+
+.news label {
+    margin-right: 10px; /* Add some spacing between label and checkbox */
+}
+
+.news input[type="checkbox"] {
+    width: auto; /* Allow checkbox to occupy its natural width */
+    margin: 0; /* Remove default margin */
+}
+
+
+  /* FORM - to be added for integration*/
+
+  .form-container {
+    margin-top: 100px; /* Adjust the value as needed */
+    padding: 20px;
+    
+    position: relative;
+  }
+  
+  #feedback-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-top: 100px;
+  }
+  
+  #report-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-left: 700px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+    position: relative;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group select {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical; /* Allow vertical resizing of the text area */
+      height: 150px; /* Set an initial height for the text area; adjust as needed */
+    }
+  
+  .radio-container {
+      display: block;
+      position: relative;
+      padding-left: 30px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  
+    .radio-container input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+  
+    .checkmark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 20px;
+      width: 20px;
+      background-color: #eee;
+      border-radius: 50%;
+    }
+  
+    .radio-container:hover input ~ .checkmark {
+      background-color: #ccc;
+    }
+  
+    .radio-container input:checked ~ .checkmark {
+      background-color: #2196F3;
+    }
+  
+    .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+    }
+  
+    .radio-container input:checked ~ .checkmark:after {
+      display: block;
+    }
+  
+    .radio-container .checkmark:after {
+      top: 6px;
+      left: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: white;
+    }
+  
+    /* Adjust the position as needed */
+    .radio-container input {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  
+  /* Additional styles for responsiveness */
+  @media screen and (max-width: 480px) {
+    #feedback-form {
+      max-width: 100%;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    #report-form {
+      max-width: 100%;
+    }
+  }
+  
+  /* Add padding to the table */
+  .table-container {
+    padding: 20px;
+    margin-top: 100px;
+  }
+  
+  /* Center the table horizontally */
+  .table-container table {
+    margin: 0 auto;
+  }
+  
+  /* Add some additional styling to the table */
+  .table-container table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  .table-container th, .table-container td {
+    border: 1px solid #ccc;
+    padding: 8px;
+  }
+  
+  /* Optional: Style the table header */
+  .table-container th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+  }
+
+  p.validation{
+    text-align: center;
+    color: red;
+   }

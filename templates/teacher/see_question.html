@@ -39,7 +39,7 @@
         <tr>
           <td>{{ question.question }}</td>
           <td>{{ question.marks }}</td>
-          <td><a class="btn btn-primary btn-xs" href="{{ url_for('see_question_view', course_id=course_id) }}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
+          <td><a class="btn btn-primary btn-xs" href="{{ url_for('remove_question_view', course_id=course_id, question_id=question._id) }}"><span class="glyphicon glyphicon-trash"></span></a></td>
         </tr>
       {% endfor %}
     </table>

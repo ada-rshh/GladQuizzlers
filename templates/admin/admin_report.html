@@ -1,0 +1,66 @@
+{% extends 'admin/adminbase.html' %}
+{% block content %}
+
+
+<head>
+  <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+  <style media="screen">
+    a:link {
+      text-decoration: none;
+    }
+
+    h6 {
+      text-align: center;
+    }
+
+    .row {
+      margin: 100px;
+    }
+  </style>
+</head>
+<br><br>
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h6 class="panel-title">Reports</h6>
+    </div>
+    <table class="table table-hover" id="dev-table">
+              <thead>
+                <tr>
+                  <th>Reporting Quiz</th>
+                  <th>Reporting Username</th>
+                  <th>Reported Username</th>
+                  <th>Reason for Report</th>
+                  <th>Remarks</th>
+                  <th>Screenshot</th> <!-- New column for the screenshot -->
+                </tr>
+              </thead>
+              <tbody>
+                {% for report in report_data %}
+                  <tr>
+                    <td>{{ report.reported_quiz_name }}</td>
+                    <td>{{ report.reporting_user_id }}</td>
+                    <td>{{ report.reported_quiz_author_id }}</td>
+                    <td>{{ report.report_reason }}</td>
+                    <td>{{ report.remarks }}</td>
+                    <td>
+                      {% if report.screenshot_id %}
+                      <img src="{{ url_for('get_r_screenshot', screenshot_id=report.screenshot_id) }}" style="max-width: 100px; max-height: 100px;">
+                      {% else %}
+                        No screenshot available
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+    </table>
+  </div>
+</div>
+
+<br><br><br><br><br><br>
+{% endblock content %}

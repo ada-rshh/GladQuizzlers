@@ -3,20 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>admin login</title>
-    <link href=" {{url_for('static', filename = 'forgot.css' )}}" rel="stylesheet">
+    <link href=" {{url_for('static', filename = 'newlogin.css' )}}" rel="stylesheet">
     <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet'>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
-    <div>
-        <form action="/admin_login" method="post">
-            <h1 class="words">WILDVINE <br> Admin Login</h1>
-            <input type="text" name="username" class="input" placeholder="username" required><br>
-            <input type="password" name="password" class="input" placeholder="password" required><br>
-            <h1 class="validation">{{ error }}</h1>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-           <a href="{{ url_for('admin_signup') }}" class="signup-link">Admin Sign Up</a>
-            <input type="submit" value="Login" class="submit" style="width: 6%;">
-        </form>
+    <div class="top-header">
+        <header>Admin Login</header>
     </div>
+    <form action="/admin_login" method="POST">
+        <div class="input-field">
+            <input type="text" name="username" class="input" placeholder="Username" required>
+            <i class="bx bx-user"></i>
+        </div>
+        <div class="input-field">
+            <input type="password" name="password" class="input" placeholder="Password" required>
+            <i class="bx bx-lock-alt"></i>
+        </div>
+        </div>
+        <div class="right">
+            <label><a href="{{ url_for('admin_signup') }}" class="signup-link">Admin Sign Up</a></label>
+        </div>
+        <a href="{{ url_for('admin_signup') }}" class="signup-link">Admin Sign Up</a>
+        <p class="validation">{{ error }}</p>
+        <button type="submit" class="submit">Login</button>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    </form>
 </body>
 </html>
